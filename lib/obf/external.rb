@@ -13,70 +13,8 @@ module OBF::External
     }
     grid = []
     
-    res['images'] = []
-    (hash['images'] || []).each do |original_image|
-      image = {
-        'id' => original_image['id'],
-        'width' => original_image['width'],
-        'height' => original_image['height'],
-        'license' => OBF::Utils.parse_license(original_image['license']),
-        'url' => original_image['url'],
-        'data_url' => original_image['data_url'],
-        'content_type' => original_image['content_type']
-      }
-      if !path_hash
-        image['data'] = OBF::Utils.image_base64(image['url'])
-      else
-        if path_hash['images'] && path_hash['images'][image['id']]
-          image['path'] = path_hash['images'][image['id']]['path']
-        else
-          image_fetch = OBF::Utils.image_raw(image['url'])
-          if image_fetch
-            zip_path = "images/image_#{image['id']}#{image_fetch['extension']}"
-            path_hash['images'] ||= {}
-            path_hash['images'][image['id']] = {
-              'path' => zip_path
-            }
-            path_hash['zip'].add(zip_path, image_fetch['data'])
-            image['path'] = zip_path
-          end
-        end
-      end
-      res['images'] << image
-    end
-    
-    res['sounds'] = []
-    (hash['sounds'] || []).each do |original_sound|
-      sound = {
-        'id' => original_sound['id'],
-        'duration' => original_sound['duration'],
-        'license' => OBF::Utils.parse_license(original_sound['license']),
-        'url' => original_sound['url'],
-        'data_url' => original_sound['data_url'],
-        'content_type' => original_sound['content_type']
-      }
-      if !path_hash
-        sound['data'] = OBF::Utils.sound_base64(sound['url'])
-      else
-        if path_hash['sounds'] && path_hash['sounds'][sound['id']]
-          sound['path'] = path_hash['sounds'][sound['id']]['path']
-        else
-          sound_fetch = OBF::Utils.sound_raw(sound['url'])
-          if sound_fetch
-            zip_path = "sounds/sound_#{sound['id']}#{sound_fetch['extension']}"
-            path_hash['sounds'] ||= {}
-            path_hash['sounds'][sound['id']] = {
-              'path' => zip_path
-            }
-            path_hash['zip'].add(zip_path, sound_fetch['data'])
-            sound['path'] = zip_path
-          end
-        end
-        sound['path'] = zip_path
-      end
-      
-      res['sounds'] << sound
-    end
+    images = []
+    sounds = []
     
     res['buttons'] = []
     buttons = hash['buttons'] #board.settings['buttons']
@@ -112,27 +50,88 @@ module OBF::External
           button[key] = val
         end
       end
-#       if original_button['apps']
-#         button['ext_coughdrop_apps'] = original_button['apps']
-#         if original_button['apps']['web'] && original_button['apps']['web']['launch_url']
-#           button['url'] = original_button['apps']['web']['launch_url']
-#         end
-#       end
+
       if original_button['image_id'] && hash['images']
-        image = res['images'].detect{|i| i['id'] == original_button['image_id']}
+        image = hash['images'].detect{|i| i['id'] == original_button['image_id']}
         if image
+          images << image
           button['image_id'] = image['id']
         end
       end
       if original_button['sound_id']
-        sound = res['sounds'].detect{|s| s['id'] == original_button['sound_id']}
+        sound = hash['sounds'].detect{|s| s['id'] == original_button['sound_id']}
         if sound
+          sounds << sound
           button['sound_id'] = sound['id']
         end
       end
       res['buttons'] << button
       OBF::Utils.update_current_progress(idx.to_f / button_count.to_f)
     end
+
+    images.each do |original_image|
+      image = {
+        'id' => original_image['id'],
+        'width' => original_image['width'],
+        'height' => original_image['height'],
+        'license' => OBF::Utils.parse_license(original_image['license']),
+        'url' => original_image['url'],
+        'data_url' => original_image['data_url'],
+        'content_type' => original_image['content_type']
+      }
+      if !path_hash
+        image['data'] = OBF::Utils.image_base64(image['url'])
+      else
+        if path_hash['images'] && path_hash['images'][image['id']]
+          image['path'] = path_hash['images'][image['id']]['path']
+        else
+          image_fetch = OBF::Utils.image_raw(image['url'])
+          if image_fetch
+            zip_path = "images/image_#{image['id']}#{image_fetch['extension']}"
+            path_hash['images'] ||= {}
+            path_hash['images'][image['id']] = {
+              'path' => zip_path
+            }
+            path_hash['zip'].add(zip_path, image_fetch['data'])
+            image['path'] = zip_path
+          end
+        end
+      end
+      res['images'] << image
+    end
+    
+    sounds.each do |original_sound|
+      sound = {
+        'id' => original_sound['id'],
+        'duration' => original_sound['duration'],
+        'license' => OBF::Utils.parse_license(original_sound['license']),
+        'url' => original_sound['url'],
+        'data_url' => original_sound['data_url'],
+        'content_type' => original_sound['content_type']
+      }
+      if !path_hash
+        sound['data'] = OBF::Utils.sound_base64(sound['url'])
+      else
+        if path_hash['sounds'] && path_hash['sounds'][sound['id']]
+          sound['path'] = path_hash['sounds'][sound['id']]['path']
+        else
+          sound_fetch = OBF::Utils.sound_raw(sound['url'])
+          if sound_fetch
+            zip_path = "sounds/sound_#{sound['id']}#{sound_fetch['extension']}"
+            path_hash['sounds'] ||= {}
+            path_hash['sounds'][sound['id']] = {
+              'path' => zip_path
+            }
+            path_hash['zip'].add(zip_path, sound_fetch['data'])
+            sound['path'] = zip_path
+          end
+        end
+        sound['path'] = zip_path
+      end
+      
+      res['sounds'] << sound
+    end
+
     res['grid'] = OBF::Utils.parse_grid(hash['grid']) # TODO: more robust parsing here
     if path_hash
       zip_path = "board_#{res['id']}.obf"
@@ -167,6 +166,10 @@ module OBF::External
           item['data_or_url'] = str
         end
         item['data_or_url'] ||= item['url']
+        if item['path']
+          opts[list] ||= {} 
+          opts[list][item['path']] ||= item
+        end
       end
     end
     
@@ -274,31 +277,24 @@ module OBF::External
 
   end
   
-  def self.to_obz(boards, dest_path, opts)
+  def self.to_obz(content, dest_path, opts)
     paths = {}
+    boards = content['boards']
     root_board = boards[0]
     OBF::Utils.build_zip(dest_path) do |zipper|
       paths['zip'] = zipper
-#       board.track_downstream_boards!
       paths['included_boards'] = {}
       boards.each do |b|
         paths['included_boards'][b['id']] = b
       end
       boards.each do |b|
         b = paths['included_boards'][b['id']]
-        to_obf(b, nil, paths) if b
+        if b
+          b['images'] = content['images'] || []
+          b['sounds'] = content['sounds'] || []
+          to_obf(b, nil, paths) 
+        end
       end
-#       board.settings['downstream_board_ids'].each do |id|
-#         b = Board.find_by_path(id)
-#         if b.allows?(opts['user'], 'view')
-#           paths['included_boards'][id] = b
-#         end
-#       end
-#       to_obf(board, nil, paths)
-#       board.settings['downstream_board_ids'].each do |id|
-#         b = paths['included_boards'][id]
-#         to_obf(b, nil, paths) if b
-#       end
       manifest = {
         'root' => paths['boards'][root_board['id']]['path'],
         'paths' => {}
@@ -316,7 +312,10 @@ module OBF::External
   end
   
   def self.from_obz(obz_path, opts)
-    result = []
+    boards = []
+    images = []
+    sounds = []
+    obf_opts = {'zipper' => zipper, 'images' => {}, 'sounds' => {}, 'boards' => {}}
     OBF::Utils.load_zip(obz_path) do |zipper|
       manifest = JSON.parse(zipper.read('manifest.json'))
       root = manifest['root']
@@ -324,8 +323,6 @@ module OBF::External
       board['path'] = root
       unvisited_boards = [board]
       visited_boards = []
-      obf_opts = {'zipper' => zipper, 'images' => {}, 'sounds' => {}, 'boards' => {}}
-#      obf_opts = {'user' => opts['user'], 'zipper' => 'zipper', 'images' => {}, 'sounds' => {}, 'boards' => {}}
       while unvisited_boards.length > 0
         board_object = unvisited_boards.shift
         board_object['id'] ||= rand(9999).to_s + Time.now.to_i.to_s
@@ -344,10 +341,23 @@ module OBF::External
         end
       end
       visited_boards.each do |board_object|
-        result << from_obf(board_object, obf_opts)
+        res = from_obf(board_object, obf_opts)
+        images += res['images'] || []
+        sounds += res['sounds'] || []
+        boards << res
       end
     end
-    return result
+    images.uniq!
+    sounds.uniq!
+    raise "image ids must be present and unique" unless images.map{|i| i['id'] }.uniq.length == images.length
+    raise "sound ids must be present and unique" unless sounds.map{|i| i['id'] }.uniq.length == sounds.length
+    # TODO: try to fix the problem where multiple images or sounds have the same id --
+    # this involves reaching in and updating image and sound references on generated boards..
+    return {
+      'boards' => result,
+      'images' => images,
+      'sounds' => sounds
+    }
   end
   
   def self.to_pdf(board, dest_path, opts)
