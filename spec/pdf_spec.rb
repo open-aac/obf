@@ -29,7 +29,7 @@ describe OBF::PDF do
       }
       path1 = OBF::Utils.temp_path("stash")
       path2 = OBF::Utils.temp_path(["file", ".pdf"])
-      OBF::External.to_obz([b1, b2], path1, {})
+      OBF::External.to_obz({'boards' => [b1, b2]}, path1, {})
       OBF::PDF.from_obz(path1, path2)
       File.unlink path1
       expect(File.exist?(path2)).to eq(true)
@@ -42,7 +42,13 @@ describe OBF::PDF do
     it "should convert to obz and then render that" do
       expect(OBF::OBZ).to receive(:from_external).and_return("/file.obz")
       expect(OBF::PDF).to receive(:from_obz).with("/file.obz", "/file.pdf")
-      OBF::PDF.from_external(nil, "/file.pdf")
+      OBF::PDF.from_external({'boards' => []}, "/file.pdf")
+    end
+    
+    it "should convert to obf if a single record and then render that" do
+      expect(OBF::OBF).to receive(:from_external).and_return("/file.obf")
+      expect(OBF::PDF).to receive(:from_obf).with("/file.obf", "/file.pdf")
+      OBF::PDF.from_external({}, "/file.pdf")
     end
   end  
 

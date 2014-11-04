@@ -183,9 +183,13 @@ module OBF::PDF
     return dest_path
   end
   
-  def self.from_external(board, dest_path, full_set=false)
+  def self.from_external(content, dest_path)
     tmp_path = OBF::Utils.temp_path("stash")
-    from_obz(OBF::OBZ.from_external(board, full_set, tmp_path), dest_path)
+    if content['boards']
+      from_obz(OBF::OBZ.from_external(content, tmp_path), dest_path)
+    else
+      from_obf(OBF::OBF.from_external(content, tmp_path), dest_path)
+    end
     File.unlink(tmp_path) if File.exist?(tmp_path)
     dest_path
   end

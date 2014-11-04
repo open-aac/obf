@@ -186,6 +186,8 @@ describe OBF::External do
       expect(json['sounds']).to eq(list)
     end
     
+    it "should not include superfluous sounds or images"
+    
     it "should export links to external urls" do
       b = external_board
       b['name'] = "My Board"
@@ -354,7 +356,7 @@ describe OBF::External do
         'order' => [['1']]
       }
       path = OBF::Utils.temp_path("stash")
-      OBF::External.to_obz([b], path, {})
+      OBF::External.to_obz({'boards' => [b]}, path, {})
       expect(File.exist?(path)).to eq(true)
       expect(File.size(path)).to be > 10
     end
@@ -371,7 +373,7 @@ describe OBF::External do
         'order' => [['1']]
       }
       path = OBF::Utils.temp_path("stash")
-      OBF::External.to_obz([b, b2], path, {})
+      OBF::External.to_obz({'boards' => [b, b2]}, path, {})
       expect(File.exist?(path)).to eq(true)
       expect(File.size(path)).to be > 10
       
@@ -415,7 +417,7 @@ describe OBF::External do
       }
 
       path = OBF::Utils.temp_path("stash")
-      OBF::External.to_obz([b], path, {})
+      OBF::External.to_obz({'boards' => [b]}, path, {})
       
       OBF::Utils.load_zip(path) do |zipper|
         manifest = JSON.parse(zipper.read('manifest.json'))
@@ -465,16 +467,19 @@ describe OBF::External do
         'order' => [['1']]
       }
       path = OBF::Utils.temp_path("stash")
-      OBF::External.to_obz([b, b2], path, {})
+      OBF::External.to_obz({'boards' => [b, b2]}, path, {})
       expect(File.exist?(path)).to eq(true)
       expect(File.size(path)).to be > 10
       
-      boards = OBF::External.from_obz(path, {})
+      boards = OBF::External.from_obz(path, {})['boards']
       expect(boards).not_to eq(nil)
       expect(boards.length).to eq(2)
       expect(boards[0]['id']).to eq(b['id'])
       expect(boards[1]['id']).to eq(b2['id'])
     end
+    
+    it "should return a list of unique images"
+    it "should return a list of unique sounds"
   end
 
   describe "to_pdf" do

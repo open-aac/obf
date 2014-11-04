@@ -280,6 +280,8 @@ module OBF::External
   def self.to_obz(content, dest_path, opts)
     paths = {}
     boards = content['boards']
+    content['images'] ||= boards.map{|b| b['images'] }.flatten.uniq
+    content['sounds'] ||= boards.map{|b| b['sounds'] }.flatten.uniq
     root_board = boards[0]
     OBF::Utils.build_zip(dest_path) do |zipper|
       paths['zip'] = zipper
@@ -315,8 +317,8 @@ module OBF::External
     boards = []
     images = []
     sounds = []
-    obf_opts = {'zipper' => zipper, 'images' => {}, 'sounds' => {}, 'boards' => {}}
     OBF::Utils.load_zip(obz_path) do |zipper|
+      obf_opts = {'zipper' => zipper, 'images' => {}, 'sounds' => {}, 'boards' => {}}
       manifest = JSON.parse(zipper.read('manifest.json'))
       root = manifest['root']
       board = OBF::Utils.parse_obf(zipper.read(root))
@@ -354,7 +356,7 @@ module OBF::External
     # TODO: try to fix the problem where multiple images or sounds have the same id --
     # this involves reaching in and updating image and sound references on generated boards..
     return {
-      'boards' => result,
+      'boards' => boards,
       'images' => images,
       'sounds' => sounds
     }

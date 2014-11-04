@@ -3,8 +3,8 @@ module OBF::OBZ
     OBF::External.from_obz(obz, opts)
   end
   
-  def self.from_external(board, dest_path, opts)
-    OBF::External.to_obz(board, dest_path, opts)
+  def self.from_external(content, dest_path, opts)
+    OBF::External.to_obz(content, dest_path, opts)
   end
   
   def self.to_pdf(obz, dest_path)
