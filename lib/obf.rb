@@ -6,10 +6,10 @@ require 'tempfile'
 require 'prawn'
 
 module OBF
-  require './lib/obf/external'
-  require './lib/obf/obf'
-  require './lib/obf/obz'
-  require './lib/obf/pdf'
-  require './lib/obf/png'
-  require './lib/obf/utils'
+  require 'obf/external'
+  require 'obf/obf'
+  require 'obf/obz'
+  require 'obf/pdf'
+  require 'obf/png'
+  require 'obf/utils'
 end

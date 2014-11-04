@@ -1,16 +1,15 @@
 module OBF::External
   def self.to_obf(hash, dest_path, path_hash=nil)
     res = OBF::Utils.obf_shell
-    res['id'] = hash['id'] #board.global_id
-    res['name'] = hash['name'] #board.settings['name']
-    res['default_layout'] = hash['default_layout'] || 'landscape' #'landscape'
-    res['url'] = hash['url'] #"#{JsonApi::Json.current_host}/#{board.key}"
-    res['data_url'] = hash['data_url'] #"#{JsonApi::Json.current_host}/api/v1/boards/#{board.key}"
-    res['description_html'] = hash['description_html'] #board.settings['description']
-    res['license'] = OBF::Utils.parse_license(hash['license']) #board.settings['license'])
+    res['id'] = hash['id']
+    res['name'] = hash['name']
+    res['default_layout'] = hash['default_layout'] || 'landscape'
+    res['url'] = hash['url']
+    res['data_url'] = hash['data_url']
+    res['description_html'] = hash['description_html']
+    res['license'] = OBF::Utils.parse_license(hash['license'])
     res['settings'] = {
-      'private' => !!(hash['settings'] && hash['settings']['private']), #!board.public,
-      'key' => hash['key'] #board.key.split(/\//, 2)[1]
+      'private' => !!(hash['settings'] && hash['settings']['private'])
     }
     grid = []
     
@@ -44,16 +43,6 @@ module OBF::External
         end
       end
       res['images'] << image
-#         image = board.button_images.detect{|i| i.global_id == original_button['image_id'] }
-#         image = {
-#           'id' => image.global_id,
-#           'width' => image.settings['width'],
-#           'height' => image.settings['height'],
-#           'license' => OBF::Utils.parse_license(image.settings['license']),
-#           'url' => image.url,
-#           'data_url' => "#{JsonApi::Json.current_host}/api/v1/images/#{image.global_id}",
-#           'content_type' => image.settings['content_type']
-#         }
     end
     
     res['sounds'] = []
@@ -87,16 +76,6 @@ module OBF::External
       end
       
       res['sounds'] << sound
-      
-#         sound = board.button_sounds.detect{|i| i.global_id == original_button['sound_id'] }
-#         sound = {
-#           'id' => sound.global_id,
-#           'duration' => sound.settings['duration'],
-#           'license' => OBF::Utils.parse_license(sound.settings['license']),
-#           'url' => sound.url,
-#           'data_url' => "#{JsonApi::Json.current_host}/api/v1/sounds/#{sound.global_id}",
-#           'content_type' => sound.settings['content_type']
-#         }
     end
     
     res['buttons'] = []
@@ -118,8 +97,8 @@ module OBF::External
       if original_button['load_board']
         button['load_board'] = {
           'id' => original_button['load_board']['id'],
-          'url' => original_button['load_board']['url'], #"#{JsonApi::Json.current_host}/#{original_button['load_board']['key']}",
-          'data_url' => original_button['load_board']['data_url'] #"#{JsonApi::Json.current_host}/api/v1/boards/#{original_button['load_board']['key']}"
+          'url' => original_button['load_board']['url'],
+          'data_url' => original_button['load_board']['data_url']
         }
         if path_hash && path_hash['included_boards'][original_button['load_board']['id']]
           button['load_board']['path'] = "board_#{original_button['load_board']['id']}.obf"
