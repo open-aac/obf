@@ -3,6 +3,9 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'json'
   s.add_dependency 'typhoeus'
+  s.add_dependency 'mime-types'
+  s.add_dependency 'rubyzip'
+  s.add_dependency 'prawn'
 
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'ruby-debug'
@@ -16,12 +19,11 @@ Gem::Specification.new do |s|
   s.authors     = ["Brian Whitmer"]
   s.email       = 'brian.whitmer@gmail.com'
 
-	s.files = Dir["{lib}/**/*"] + ["LICENSE", "README.md", "Changelog"]
+	s.files = Dir["{lib}/**/*"] + ["LICENSE", "README.md"]
   s.require_paths = %W(lib)
 
-  s.homepage    =
-    'http://rubygems.org/gems/obf'
-  s.license       = 'MIT'
+  s.homepage    = 'http://rubygems.org/gems/obf'
+  s.license     = 'MIT'
 end
 
 # TODO: need any easy handler for going back and forth with CoughDrop internal format
