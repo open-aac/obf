@@ -1,81 +1,23 @@
 module OBF::Utils
-#   def self.board_to_remote(board, user, file_type, include)
-#     OBF::Utils.update_current_progress(0.2, :converting_file)
-#     # TODO: key off just the last change id for the board(s) when building the
-#     # filename, return existing filename if it exists and isn't about to expire
-#     path = OBF::Utils.temp_path("stash")
-# 
-#     content_type = nil
-#     if file_type == 'obf'
-#       content_type = 'application/obf'
-#     elsif file_type == 'obz'
-#       content_type = 'application/obz'
-#     elsif file_type == 'pdf'
-#       content_type = 'application/pdf'
-#     else
-#       raise "Unrecognized conversion type: #{file_type}"
-#     end
-#     key = Security.sha512(board.id.to_s, 'board_id')
-#     filename = "board_" + board.current_revision + "." + file_type.to_s
-#     remote_path = "downloads/#{key}/#{filename}"
-#     url = Uploader.check_existing_upload(remote_path)
-#     return url if url
-#     OBF::Utils.update_current_progress(0.3, :converting_file)
-#     
-#     OBF::Utils.as_progress_percent(0.3, 0.8) do
-#       if file_type == 'obz'
-#         if include == 'all'
-#           OBF::CoughDrop.to_obz(board, path, {'user' => user})
-#         else
-#           OBF::CoughDrop.to_obz(board, path, {'user' => user})
-#         end
-#       elsif file_type == 'obf'
-#         OBF::CoughDrop.to_obf(board, path)
-#       elsif file_type == 'pdf'
-#         OBF::CoughDrop.to_pdf(board, path, {'user' => user, 'packet' => (include == 'all')})
-#       end
-#     end
-#     OBF::Utils.update_current_progress(0.9, :uploading_file)
-#     url = Uploader.remote_upload(remote_path, path, content_type)
-#     raise "File not uploaded" unless url
-#     File.unlink(path) if File.exist?(path)
-#     return url
-#   end
-  
-#   def self.remote_to_boards(user, url)
-#     result = []
-#     OBF::Utils.update_current_progress(0.1, :downloading_file)
-#     response = Typhoeus.get(url)
-#     file = Tempfile.new('stash')
-#     file.binmode
-#     file.write response.body
-#     file.close
-#     OBF::Utils.update_current_progress(0.2, :processing_file)
-#     OBF::Utils.as_progress_percent(0.2, 1.0) do
-#       if url.match(/\.obz$/) || response.headers['Content-Type'] == 'application/obz'
-#         boards = OBF::CoughDrop.from_obz(file.path, {'user' => user})
-#         result = boards
-#       elsif url.match(/\.obf$/) || response.headers['Content-Type'] == 'application/obf'
-#         board = OBF::CoughDrop.from_obf(file.path, {'user' => user})
-#         result = [board]
-#       else
-#         raise "Unrecognized file type: #{response.headers['Content-Type']}"
-#       end
-#       file.unlink
-#     end
-#     return result
-#   end
-  
   def self.get_url(url)
     return nil unless url
-    res = Typhoeus.get(URI.escape(url))
-    extension = ""
-    type = MIME::Types[res.headers['Content-Type']]
+    content_type = nil
+    data = nil
+    if url.match(/^data:/)
+      content_type = url.split(/;/)[0].split(/:/)[1]
+      data = Base64.strict_decode64(url.split(/\,/, 2)[1])
+    else
+      res = Typhoeus.get(URI.escape(url))
+      content_type = res.headers['Content-Type']
+      data = res.body
+    end
+    type = MIME::Types[content_type]
     type = type && type[0]
+    extension = ""
     extension = ("." + type.preferred_extension) if type && type.extensions && type.extensions.length > 0
     {
-      'content_type' => res.headers['Content-Type'],
-      'data' => res.body,
+      'content_type' => content_type,
+      'data' => data,
       'extension' => extension
     }
   end
@@ -87,7 +29,16 @@ module OBF::Utils
   end
   
   def self.image_base64(url)
-    image = get_url(url)
+    image = nil
+    if url.match(/:\/\//)
+      image = get_url(url)
+    else
+      types = MIME::Types.type_for(url)
+      image = {
+        'data' => File.read(url),
+        'content_type' => types[0] && types[0].to_s
+      }
+    end
     return nil unless image
     str = "data:" + image['content_type']
     str += ";base64," + Base64.strict_encode64(image['data'])
@@ -137,7 +88,16 @@ module OBF::Utils
   end
   
   def self.sound_base64(url)
-    sound = get_url(url)
+    sound = nil
+    if url.match(/:\/\//)
+      sound = get_url(url)
+    else
+      types = MIME::Types.type_for(url)
+      sound = {
+        'data' => File.read(url),
+        'content_type' => types[0] && types[0].to_s
+      }
+    end
     return nil unless sound
     str = "data:" + sound['content_type']
     str += ";base64," + Base64.strict_encode64(sound['data'])
@@ -227,6 +187,37 @@ module OBF::Utils
     def read(path)
       entry = @zipfile.glob(path).first
       entry ? entry.get_input_stream.read : nil
+    end
+
+    def read_as_data(path)
+      attrs = {}
+      raw = @zipfile.read(path)
+      types = MIME::Types.type_for(path)
+      attrs['content_type'] = types[0] && types[0].to_s
+    
+      str = "data:" + attrs['content_type']
+      str += ";base64," + Base64.strict_encode64(raw)
+      attrs['data'] = str
+    
+      if attrs['content_type'].match(/^image/)
+        fn = OBF::Utils.temp_path('file')
+        file = Tempfile.new('file')
+        file.binmode
+        file.write raw
+        file.close
+        data = `identify -verbose #{file.path}`
+        data.split(/\n/).each do |line|
+          pre, post = line.sub(/^\s+/, '').split(/:\s/, 2)
+          if pre == 'Geometry'
+            match = post.match(/(\d+)x(\d+)/)
+            if match && match[1] && match[2]
+              attrs['width'] = match[1].to_i
+              attrs['height'] = match[2].to_i
+            end
+          end
+        end
+      end
+      attrs
     end
   end
   

@@ -1,4 +1,13 @@
 module OBF::PDF
+  @@footer_text ||= nil
+  def self.footer_text
+    @@footer_text
+  end
+  
+  def self.footer_text=(text)
+    @@footer_text = text
+  end
+  
   def self.from_obf(obf_json_or_path, dest_path, zipper=nil)
     obj = obf_json_or_path
     if obj.is_a?(String)
@@ -131,7 +140,9 @@ module OBF::PDF
     
       # footer
       pdf.fill_color "aaaaaa"
-      pdf.text_box "mycoughdrop.com", :at => [doc_width - 300, text_height], :width => 200, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
+      if OBF::PDF.footer_text
+        pdf.text_box OBF::PDF.footer_text, :at => [doc_width - 300, text_height], :width => 200, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
+      end
       pdf.fill_color "000000"
       if options['pages']
         pdf.text_box options['pages'][obj['id']], :at => [doc_width - 100, text_height], :width => 100, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit

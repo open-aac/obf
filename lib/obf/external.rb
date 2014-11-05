@@ -76,6 +76,7 @@ module OBF::External
         'height' => original_image['height'],
         'license' => OBF::Utils.parse_license(original_image['license']),
         'url' => original_image['url'],
+        'data' => original_image['data'],
         'data_url' => original_image['data_url'],
         'content_type' => original_image['content_type']
       }
@@ -85,7 +86,7 @@ module OBF::External
         if path_hash['images'] && path_hash['images'][image['id']]
           image['path'] = path_hash['images'][image['id']]['path']
         else
-          image_fetch = OBF::Utils.image_raw(image['url'])
+          image_fetch = OBF::Utils.image_raw(image['url'] || image['data'])
           if image_fetch
             zip_path = "images/image_#{image['id']}#{image_fetch['extension']}"
             path_hash['images'] ||= {}
@@ -115,7 +116,7 @@ module OBF::External
         if path_hash['sounds'] && path_hash['sounds'][sound['id']]
           sound['path'] = path_hash['sounds'][sound['id']]['path']
         else
-          sound_fetch = OBF::Utils.sound_raw(sound['url'])
+          sound_fetch = OBF::Utils.sound_raw(sound['url'] || sound['data'])
           if sound_fetch
             zip_path = "sounds/sound_#{sound['id']}#{sound_fetch['extension']}"
             path_hash['sounds'] ||= {}
@@ -194,7 +195,7 @@ module OBF::External
         if b
           b['images'] = content['images'] || []
           b['sounds'] = content['sounds'] || []
-          to_obf(b, nil, paths) 
+          to_obf(b, nil, paths)
         end
       end
       manifest = {
