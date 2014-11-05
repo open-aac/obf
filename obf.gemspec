@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
 	s.files = Dir["{lib}/**/*"] + ["LICENSE", "README.md"]
   s.require_paths = %W(lib)
 
-  s.homepage    = 'http://rubygems.org/gems/obf'
+  s.homepage    = 'https://github.com/CoughDrop/obf'
   s.license     = 'MIT'
 end
 
