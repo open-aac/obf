@@ -434,6 +434,7 @@ describe OBF::External do
           'license' => {'type' => 'private'},
           'url' => 'http://example.com/pic.png',
           'data_url' => nil,
+          'data' => nil,
           'content_type' => 'text/plaintext',
           'path' => "images/image_#{b['images'][0]['id']}"
         }
