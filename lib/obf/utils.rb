@@ -132,7 +132,7 @@ module OBF::Utils
           hash[item['id']] = item
         end
         json["#{key}_hash"] = hash
-      else
+      elsif json["#{key}_hash"]
         array = []
         json["#{key}_hash"].each do |id, item|
           item['id'] ||= id

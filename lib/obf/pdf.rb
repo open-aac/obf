@@ -48,6 +48,14 @@ module OBF::PDF
     end
   end
   
+  def self.fix_color(str)
+    @@colors ||= {}
+    return @@colors[str] if @@colors[str]
+    color = `node lib/tinycolor_convert.js "#{str}"`.strip
+    @@colors[str] = color
+    color
+  end
+  
   def self.build_page(pdf, obj, options)
     OBF::Utils.as_progress_percent(0, 1.0) do
       doc_width = 11*72 - 72
@@ -104,20 +112,22 @@ module OBF::PDF
               fill = "ffffff"
               border = "eeeeee"
               if button['background_color']
-                fill = `node lib/tinycolor_convert.js "#{button['background_color']}"`.strip
+                fill = fix_color(button['background_color'])
               end   
               if button['border_color']
-                border = `node lib/tinycolor_convert.js "#{button['border_color']}"`.strip
+                border = fix_color(button['border_color'])
               end         
               pdf.fill_color fill
               pdf.stroke_color border
               pdf.fill_and_stroke_rounded_rectangle [0, button_height], button_width, button_height, default_radius
               pdf.bounding_box([5, button_height - 5], :width => button_width - 10, :height => button_height - text_height - 5) do
-                image = obj['images_hash'][button['image_id']]
-                image_local_path = image && OBF::Utils.save_image(image, options['zipper'])
-                if image_local_path && File.exist?(image_local_path)
-                  pdf.image image_local_path, :fit => [button_width - 10, button_height - text_height - 5], :position => :center, :vposition => :center
-                  File.unlink image_local_path
+                image = (obj['images_hash'] || {})[button['image_id']]
+                if image
+                  image_local_path = image && OBF::Utils.save_image(image, options['zipper'])
+                  if image_local_path && File.exist?(image_local_path)
+                    pdf.image image_local_path, :fit => [button_width - 10, button_height - text_height - 5], :position => :center, :vposition => :center
+                    File.unlink image_local_path
+                  end
                 end
               end
               if options['pages'] && button['load_board']

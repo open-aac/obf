@@ -156,7 +156,7 @@ module OBF::External
     end
     
     ['images', 'sounds'].each do |type|
-      obj[type].each do |item|
+      (obj[type] || []).each do |item|
         item['data_or_url'] = item['data']
         if !item['data_or_url'] && item['path'] && opts['zipper']
           content_type = item['content_type']
