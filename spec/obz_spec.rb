@@ -30,7 +30,7 @@ describe OBF::OBZ do
   
   describe "parsing" do
     it "should parse a valid .obz file" do
-      res = OBF::External.from_obz('./spec/samples/deep_simple.obz', {})
+      res = OBF::External.from_obz('./spec/samples/deep_simple.zip', {})
       expect(res['boards'].length).to eql(97)
       b = res['boards'][0]
       expect(b['id']).to eql('page1')
@@ -67,6 +67,9 @@ describe OBF::OBZ do
         'id' => 'aboutyou',
         'path' => 'boards/aboutyou.obf'
       })
+
+      OBF::PDF.from_obz('./spec/samples/deep_simple.zip', './file.pdf')
     end
+    
   end
 end

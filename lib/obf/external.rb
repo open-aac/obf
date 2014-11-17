@@ -2,15 +2,18 @@ module OBF::External
   def self.to_obf(hash, dest_path, path_hash=nil)
     res = OBF::Utils.obf_shell
     res['id'] = hash['id']
+    res['locale'] = hash['locale'] || 'en'
     res['name'] = hash['name']
     res['default_layout'] = hash['default_layout'] || 'landscape'
     res['url'] = hash['url']
     res['data_url'] = hash['data_url']
     res['description_html'] = hash['description_html']
     res['license'] = OBF::Utils.parse_license(hash['license'])
-    res['settings'] = {
-      'private' => !!(hash['settings'] && hash['settings']['private'])
-    }
+    hash.each do |key, val|
+      if key && key.match(/^ext_/)
+        res[key] = val
+      end
+    end
     grid = []
     
     images = []

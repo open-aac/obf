@@ -65,6 +65,10 @@ module OBF::PDF
     
       # header
       pdf.bounding_box([0, doc_height], :width => doc_width, :height => 100) do
+        if options['pages']
+          page_num = options['pages'][obj['id']]
+          pdf.add_dest("page#{page_num}", pdf.dest_fit)
+        end
         pdf.line_width = 2
         pdf.font_size 16
         
@@ -136,7 +140,7 @@ module OBF::PDF
                 pdf.stroke_color "eeeeee"            
                 pdf.fill_and_stroke_rounded_rectangle [button_width - 25, button_height - 5], 20, text_height, 5
                 pdf.fill_color "000000"            
-                pdf.text_box page, :at => [button_width - 25, button_height - 5], :width => 20, :height => text_height, :align => :center, :valign => :center
+                pdf.formatted_text_box [{:text => page, :anchor => "page#{page}"}], :at => [button_width - 25, button_height - 5], :width => 20, :height => text_height, :align => :center, :valign => :center
               end
               
               pdf.fill_color "000000"
