@@ -28,12 +28,13 @@ module OBF::External
         'id' => original_button['id'],
         'label' => original_button['label'],
         'vocalization' => original_button['vocalization'],
+        'action' => original_button['action'],
         'left' => original_button['left'],
         'top' => original_button['top'],
         'width' => original_button['width'],
         'height' => original_button['height'],
-        'border_color' => original_button['border_color'] || "#aaa",
-        'background_color' => original_button['background_color'] || "#fff"
+        'border_color' => OBF::Utils.fix_color(original_button['border_color'] || "#aaa", 'rgb'),
+        'background_color' => OBF::Utils.fix_color(original_button['background_color'] || "#fff", 'rgb')
       }
       if original_button['load_board']
         button['load_board'] = {

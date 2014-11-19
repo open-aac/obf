@@ -48,14 +48,6 @@ module OBF::PDF
     end
   end
   
-  def self.fix_color(str)
-    @@colors ||= {}
-    return @@colors[str] if @@colors[str]
-    color = `node lib/tinycolor_convert.js "#{str}"`.strip
-    @@colors[str] = color
-    color
-  end
-  
   def self.build_page(pdf, obj, options)
     OBF::Utils.as_progress_percent(0, 1.0) do
       doc_width = 11*72 - 72
@@ -116,10 +108,10 @@ module OBF::PDF
               fill = "ffffff"
               border = "eeeeee"
               if button['background_color']
-                fill = fix_color(button['background_color'])
+                fill = OBF::Utils.fix_color(button['background_color'], 'hex')
               end   
               if button['border_color']
-                border = fix_color(button['border_color'])
+                border = OBF::Utils.fix_color(button['border_color'], 'hex')
               end         
               pdf.fill_color fill
               pdf.stroke_color border

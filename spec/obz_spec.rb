@@ -68,7 +68,7 @@ describe OBF::OBZ do
         'path' => 'boards/aboutyou.obf'
       })
 
-      OBF::PDF.from_obz('./spec/samples/deep_simple.zip', './file.pdf')
+#      OBF::PDF.from_obz('./spec/samples/deep_simple.zip', './file.pdf')
     end
     
   end

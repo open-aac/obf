@@ -24,8 +24,8 @@ describe OBF::External do
       b = external_board
       b['name'] = "My Board"
       b['buttons'] = [
-        {'id' => 1, 'label' => 'chicken'},
-        {'id' => 2, 'label' => 'nuggets'},
+        {'id' => 1, 'label' => 'chicken', 'action' => '+chi'},
+        {'id' => 2, 'label' => 'nuggets', 'action' => ':space'},
         {'id' => 3, 'label' => 'sauce', 'vocalization' => 'I like sauce'}
       ]
       b['grid'] = {
@@ -50,35 +50,38 @@ describe OBF::External do
       expect(json['buttons'][0]).to eq({
         'id' => 1,
         'label' => 'chicken', 
+        'action' => '+chi',
         'vocalization' => nil,
         'left' => nil,
         'top' => nil,
         'width' => nil,
         'height' => nil,
-        'border_color' => '#aaa',
-        'background_color' => '#fff'
+        'border_color' => 'rgb(170, 170, 170)',
+        'background_color' => 'rgb(255, 255, 255)'
       })
       expect(json['buttons'][1]).to eq({
         'id' => 2,
         'label' => 'nuggets', 
+        'action' => ':space',
         'vocalization' => nil,
         'left' => nil,
         'top' => nil,
         'width' => nil,
         'height' => nil,
-        'border_color' => '#aaa',
-        'background_color' => '#fff'
+        'border_color' => 'rgb(170, 170, 170)',
+        'background_color' => 'rgb(255, 255, 255)'
       })
       expect(json['buttons'][2]).to eq({
         'id' => 3,
         'label' => 'sauce', 
+        'action' => nil,
         'vocalization' => "I like sauce",
         'left' => nil,
         'top' => nil,
         'width' => nil,
         'height' => nil,
-        'border_color' => '#aaa',
-        'background_color' => '#fff'
+        'border_color' => 'rgb(170, 170, 170)',
+        'background_color' => 'rgb(255, 255, 255)'
       })
     end
     
@@ -111,6 +114,7 @@ describe OBF::External do
       expect(json['buttons'][0]).to eq({
         'id' => 1,
         'label' => 'chicken', 
+        'action' => nil,
         'vocalization' => nil,
         'left' => nil,
         'top' => nil,
@@ -121,8 +125,8 @@ describe OBF::External do
         },
         'width' => nil,
         'height' => nil,
-        'border_color' => '#aaa',
-        'background_color' => '#fff'
+        'border_color' => 'rgb(170, 170, 170)',
+        'background_color' => 'rgb(255, 255, 255)'
       })
     end
     
@@ -216,13 +220,14 @@ describe OBF::External do
       expect(json['buttons'][0]).to eq({
         'id' => 1,
         'label' => 'chicken', 
+        'action' => nil,
         'vocalization' => nil,
         'left' => nil,
         'top' => nil,
         'width' => nil,
         'height' => nil,
-        'border_color' => '#aaa',
-        'background_color' => '#fff',
+        'border_color' => 'rgb(170, 170, 170)',
+        'background_color' => 'rgb(255, 255, 255)',
         'url' => 'http://www.example.com'
       })
     end
@@ -255,13 +260,14 @@ describe OBF::External do
       expect(json['buttons'][0]).to eq({
         'id' => 1,
         'label' => 'chicken', 
+        'action' => nil,
         'vocalization' => nil,
         'left' => nil,
         'top' => nil,
         'width' => nil,
         'height' => nil,
-        'border_color' => '#aaa',
-        'background_color' => '#fff',
+        'border_color' => 'rgb(170, 170, 170)',
+        'background_color' => 'rgb(255, 255, 255)',
         'ext_coughdrop_apps' =>  {'web' => {'launch_url' => 'http://www.example.com'}}
       })
     end

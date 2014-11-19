@@ -118,6 +118,15 @@ module OBF::Utils
       'sounds' => []
     }
   end
+
+  def self.fix_color(str, type='hex')
+    lookup = str + "::" + type
+    @@colors ||= {}
+    return @@colors[lookup] if @@colors[lookup]
+    color = `node lib/tinycolor_convert.js "#{str}" #{type}`.strip
+    @@colors[lookup] = color
+    color
+  end
   
   def self.parse_obf(obj)
     json = obj
