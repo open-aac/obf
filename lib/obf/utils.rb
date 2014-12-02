@@ -14,7 +14,11 @@ module OBF::Utils
     type = MIME::Types[content_type]
     type = type && type[0]
     extension = ""
-    extension = ("." + type.preferred_extension) if type && type.extensions && type.extensions.length > 0
+    if type.respond_to?(:preferred_extension)
+      extension = ("." + type.preferred_extension) if type.preferred_extension
+    elsif type.respond_to?(:extensions)
+      extension = ("." + type.extensions[0]) if type && type.extensions && type.extensions.length > 0
+    end
     {
       'content_type' => content_type,
       'data' => data,
@@ -65,7 +69,11 @@ module OBF::Utils
     end
     type = MIME::Types[image['content_type']]
     type = type && type[0]
-    extension = type && ("." + type.extensions.first)
+    if type.respond_to?(:preferred_extension)
+      extension = type && ("." + type.preferred_extension)
+    elsif type.respond_to?(:extensions)
+      extension = type && ("." + type.extensions.first)
+    end
     file = Tempfile.new(["image_stash", extension.to_s])
     file.binmode
     if image['data']
