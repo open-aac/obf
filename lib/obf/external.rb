@@ -1,8 +1,17 @@
 module OBF::External
   def self.to_obf(hash, dest_path, path_hash=nil)
+    if hash['boards']
+      old_hash = hash
+      hash = old_hash['boards'][0]
+      hash['images'] = content['images'] || []
+      hash['sounds'] = content['sounds'] || []
+      path_hash = nil
+    end
+    
     res = OBF::Utils.obf_shell
     res['id'] = hash['id']
     res['locale'] = hash['locale'] || 'en'
+    res['format'] = 'open-board-0.1'
     res['name'] = hash['name']
     res['default_layout'] = hash['default_layout'] || 'landscape'
     res['url'] = hash['url']
@@ -183,6 +192,15 @@ module OBF::External
   end
   
   def self.to_obz(content, dest_path, opts)
+    if content['id']
+      old_content = content
+      content = {
+        'boards' => [old_content],
+        'images' => old_content['images'] || [],
+        'sounds' => old_content['sounds'] || []
+      }
+    end
+    
     paths = {}
     boards = content['boards']
     content['images'] ||= boards.map{|b| b['images'] }.flatten.uniq
@@ -203,6 +221,7 @@ module OBF::External
         end
       end
       manifest = {
+        'format' => 'open-board-0.1',
         'root' => paths['boards'][root_board['id']]['path'],
         'paths' => {}
       }
