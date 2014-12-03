@@ -96,8 +96,8 @@ describe OBF::Utils do
       expect(path).to match(/\.png$/)
     end
     
-    it "should raise an error for unrecognized types" do
-      expect { OBF::Utils.save_image({}) }.to raise_error("uh-oh")
+    it "should return nil for unrecognized types" do
+      expect(OBF::Utils.save_image({})).to eql(nil)
     end
   end
 
@@ -182,5 +182,20 @@ describe OBF::Utils do
 
   describe "zip" do
     it "should do something worth speccing"
+  end
+  
+  describe "identify_file" do
+    it "should properly identify an obf file" do
+      expect(OBF::Utils.identify_file('./spec/samples/aboutme.json')).to eq(:obf)
+    end
+    it "should properly identify an obz file" do
+      expect(OBF::Utils.identify_file('./spec/samples/deep_simple.zip')).to eq(:obz)
+    end
+    it "should properly identify a p4me file" do
+      expect(OBF::Utils.identify_file('./spec/samples/p4me_1.zip')).to eq(:picto4me)
+    end
+    it "should properly identify a sfy file" do
+      expect(OBF::Utils.identify_file('./spec/samples/sfy.data')).to eq(:sfy)
+    end
   end
 end

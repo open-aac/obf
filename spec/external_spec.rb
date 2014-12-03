@@ -516,7 +516,7 @@ describe OBF::External do
         expect(tmp).not_to eq(nil)
         expect(dest).to eq("/file.png")
       end
-      OBF::External.to_png(nil, "/file.png")
+      OBF::External.to_png(nil, "/file.png", {})
     end
   end
 end

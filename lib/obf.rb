@@ -14,5 +14,7 @@ module OBF
   require 'obf/utils'
   
   require 'obf/picto4me'
-  require 'obf/avaz'
+  require 'obf/avz'
+  require 'obf/sfy'
+  require 'obf/unknown_file'
 end

@@ -1,3 +1,4 @@
+require 'cfpropertylist'
 module OBF::Utils
   def self.get_url(url)
     return nil unless url
@@ -24,6 +25,60 @@ module OBF::Utils
       'data' => data,
       'extension' => extension
     }
+  end
+  
+  def self.identify_file(path)
+    name = File.basename(path) rescue nil
+    if name.match(/\.obf$/)
+      return :obf
+    elsif name.match(/\.obz$/)
+      return :obz
+    elsif name.match(/\.avz$/)
+      return :avz
+    else
+      json = JSON.parse(File.read(path)) rescue nil
+      if json
+        if json['format'] && json['format'].match(/^open-board-/)
+          return :obf
+        end
+        return :unknown
+      end
+      
+      begin
+        plist = CFPropertyList::List.new(:file => path) rescue nil
+        plist_data = CFPropertyList.native_types(plist.value) rescue nil
+        if plist_data
+          if plist_data['$objects'] && plist_data['$objects'].any?{|o| o['$classname'] == 'SYWord' }
+            return :sfy
+          end
+          return :unknown
+        end
+      rescue CFFormatError => e
+      end
+      
+      begin
+        type = nil
+        load_zip(path) do |zipper|
+          if zipper.glob('manifest.json').length > 0
+            json = JSON.parse(zipper.read('manifest.json')) rescue nil
+            if json['root'] && json['format'] && json['format'].match(/^open-board-/)
+              type = :obz
+            end
+          end
+          if !type && zipper.glob('*.js').length > 0
+            json = JSON.parse(zipper.read('*.js')) rescue nil
+            if json['locale'] && json['sheets']
+              type = :picto4me
+            end
+          end
+        end
+        return type if type
+#         rescue => e
+#           puts e.class.to_s
+#           puts e.message.to_s
+      end
+    end
+    return :unknown
   end
   
   def self.image_raw(url)
@@ -82,7 +137,8 @@ module OBF::Utils
     elsif image['raw_data']
       file.write image['raw_data']
     else
-      raise "uh-oh"
+      file.close
+      return nil
     end
     file.close
     `convert #{file.path} -density 1200 -resize 300x300 -background none -gravity center -extent 300x300 #{file.path}.png`
@@ -204,6 +260,10 @@ module OBF::Utils
     def read(path)
       entry = @zipfile.glob(path).first
       entry ? entry.get_input_stream.read : nil
+    end
+    
+    def glob(path)
+      @zipfile.glob(path)
     end
 
     def read_as_data(path)

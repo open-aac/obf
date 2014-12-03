@@ -3,8 +3,8 @@ module OBF::External
     if hash['boards']
       old_hash = hash
       hash = old_hash['boards'][0]
-      hash['images'] = content['images'] || []
-      hash['sounds'] = content['sounds'] || []
+      hash['images'] = old_hash['images'] || []
+      hash['sounds'] = old_hash['sounds'] || []
       path_hash = nil
     end
     
@@ -51,7 +51,7 @@ module OBF::External
           'url' => original_button['load_board']['url'],
           'data_url' => original_button['load_board']['data_url']
         }
-        if path_hash && path_hash['included_boards'][original_button['load_board']['id']]
+        if path_hash && path_hash['included_boards'] && path_hash['included_boards'][original_button['load_board']['id']]
           button['load_board']['path'] = "board_#{original_button['load_board']['id']}.obf"
         end
       end
@@ -94,7 +94,7 @@ module OBF::External
         'content_type' => original_image['content_type']
       }
       if !path_hash
-        image['data'] = OBF::Utils.image_base64(image['url'])
+        image['data'] = OBF::Utils.image_base64(image['url']) if image['url']
       else
         if path_hash['images'] && path_hash['images'][image['id']]
           image['path'] = path_hash['images'][image['id']]['path']
@@ -307,10 +307,10 @@ module OBF::External
     dest_path
   end
   
-  def self.to_png(board, dest_path)
+  def self.to_png(board, dest_path, opts)
     tmp_path = OBF::Utils.temp_path("stash")
     OBF::Utils.as_progress_percent(0, 0.5) do
-      self.to_pdf(board, tmp_path)
+      self.to_pdf(board, tmp_path, opts)
     end
     OBF::Utils.as_progress_percent(0.5, 1.0) do
       OBF::PDF.to_png(tmp_path, dest_path)

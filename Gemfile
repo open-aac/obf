@@ -5,6 +5,7 @@ gem 'typhoeus'
 gem 'mime-types'
 gem 'rubyzip'
 gem 'prawn'
+gem 'CFPropertyList'
 
 group :test do
   gem 'rspec', :require => "spec"

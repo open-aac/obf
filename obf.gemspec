@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'ruby-debug'
 
-  s.version     = '0.3.0'
-  s.date        = '2014-12-02'
+  s.version     = '0.4.0'
+  s.date        = '2014-12-03'
   s.summary     = "Open Board Format"
   s.extra_rdoc_files = %W(LICENSE)
   s.homepage = %q{http://github.com/CoughDrop/obf}
@@ -25,7 +25,3 @@ Gem::Specification.new do |s|
   s.homepage    = 'https://github.com/CoughDrop/obf'
   s.license     = 'MIT'
 end
-
-# TODO: need any easy handler for going back and forth with CoughDrop internal format
-# to_obf should be easy
-# from_obf
