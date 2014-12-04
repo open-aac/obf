@@ -24,6 +24,18 @@ describe OBF::Utils do
       })
     end
   end
+  
+  describe "fix_color" do
+    it "should convert hex to rgb" do
+      expect(OBF::Utils.fix_color('#fff', 'rgb')).to eql('rgb(255, 255, 255)')
+      expect(OBF::Utils.fix_color('#a0a0a0', 'rgb')).to eql('rgb(160, 160, 160)')
+    end
+
+    it "should convert rgb to hex" do
+      expect(OBF::Utils.fix_color('rgb(255, 0, 0)')).to eql('ff0000')
+      expect(OBF::Utils.fix_color('rgba(255, 0, 0, 0.5)', 'hex')).to eql('ff0000')
+    end
+  end
 
   describe "image_base64" do
     it "should make a web request and return the content" do

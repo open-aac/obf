@@ -187,7 +187,8 @@ module OBF::Utils
     lookup = str + "::" + type
     @@colors ||= {}
     return @@colors[lookup] if @@colors[lookup]
-    color = `node lib/tinycolor_convert.js "#{str}" #{type}`.strip
+    path = File.dirname(File.dirname(__FILE__)) + '/tinycolor_convert.js'
+    color = `node #{path} "#{str}" #{type}`.strip
     @@colors[lookup] = color
     color
   end
