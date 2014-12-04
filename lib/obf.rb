@@ -12,6 +12,7 @@ module OBF
   require 'obf/pdf'
   require 'obf/png'
   require 'obf/utils'
+  require 'obf/validator'
   
   require 'obf/picto4me'
   require 'obf/avz'

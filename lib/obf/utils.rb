@@ -319,13 +319,13 @@ module OBF::Utils
   end
   
   def self.update_current_progress(*args)
-    if Object.const_defined?('Progress')
+    if Object.const_defined?('Progress') && Progress.respond_to?(:update_current_progress)
       Progress.update_current_progress(*args)
     end
   end
   
   def self.as_progress_percent(a, b, &block)
-    if Object.const_defined?('Progress')
+    if Object.const_defined?('Progress') && Progress.respond_to?(:as_percent)
       Progress.as_percent(a, b, &block)
     else
       block.call

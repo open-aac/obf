@@ -11,7 +11,7 @@ module OBF::External
     res = OBF::Utils.obf_shell
     res['id'] = hash['id']
     res['locale'] = hash['locale'] || 'en'
-    res['format'] = 'open-board-0.1'
+    res['format'] = OBF::OBF::FORMAT
     res['name'] = hash['name']
     res['default_layout'] = hash['default_layout'] || 'landscape'
     res['url'] = hash['url']
@@ -221,7 +221,7 @@ module OBF::External
         end
       end
       manifest = {
-        'format' => 'open-board-0.1',
+        'format' => OBF::OBF::FORMAT,
         'root' => paths['boards'][root_board['id']]['path'],
         'paths' => {}
       }
@@ -318,4 +318,6 @@ module OBF::External
     File.unlink(tmp_path) if File.exist?(tmp_path)
     dest_path
   end
+  
+  class StructureError < StandardError; end
 end

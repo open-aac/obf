@@ -1,4 +1,6 @@
 module OBF::OBF
+  FORMAT="open-board-0.1"
+  FORMAT_CURRENT_VERSION=0.1
   def self.to_external(obf, opts)
     OBF::External.from_obf(obf, opts)
   end

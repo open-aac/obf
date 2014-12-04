@@ -139,8 +139,8 @@
         "path": "boards/aboutyou.obf"
       },
       "id": 17,
-      "border_color": "#444",
-      "background_color": "#ff7c21",
+      "border_color": "rgb(255, 255, 0)",
+      "background_color": "rgba(120, 113, 255, 0.5)",
       "image_id": 17
     }
   ],
