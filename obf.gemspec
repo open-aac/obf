@@ -6,11 +6,12 @@ Gem::Specification.new do |s|
   s.add_dependency 'mime-types'
   s.add_dependency 'rubyzip'
   s.add_dependency 'prawn'
+  s.add_dependency 'CFPropertyList'
 
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'ruby-debug'
 
-  s.version     = '0.4.0'
+  s.version     = '0.4.1'
   s.date        = '2014-12-03'
   s.summary     = "Open Board Format"
   s.extra_rdoc_files = %W(LICENSE)
