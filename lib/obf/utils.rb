@@ -265,6 +265,10 @@ module OBF::Utils
     def glob(path)
       @zipfile.glob(path)
     end
+    
+    def all_files
+      @zipfile.entries.select{|e| e.file? }.map{|e| e.to_s }
+    end
 
     def read_as_data(path)
       attrs = {}

@@ -30,10 +30,10 @@ describe OBF::Validator do
       val = OBF::Validator.validate_obz('./spec/samples/deep_simple.zip')
       expect(val[:valid]).to eq(false)
       expect(val[:errors]).to eq(2955)
-      expect(val[:warnings]).to eq(106)
+      expect(val[:warnings]).to eq(107)
       res = val[:results]
       expect(res).to be_is_a(Array)
-      expect(res.length).to eq(10)
+      expect(res.length).to eq(106)
     end
     
     it "should not error on unrecognized files" do
@@ -112,10 +112,10 @@ describe OBF::Validator do
       val = OBF::Validator.validate_obz('./spec/samples/deep_simple.zip')
       expect(val[:valid]).to eq(false)
       expect(val[:errors]).to eq(2955)
-      expect(val[:warnings]).to eq(106)
+      expect(val[:warnings]).to eq(107)
       res = val[:results]
       expect(res).to be_is_a(Array)
-      expect(res.length).to eq(10)
+      expect(res.length).to eq(106)
       
       record = check_valid(res, 'filename')
       expect(record['warnings'][0]).to eq("filename should end with .obz")
@@ -125,13 +125,11 @@ describe OBF::Validator do
       check_valid(res, 'manifest_root')
       check_valid(res, 'manifest_paths')
       check_valid(res, 'manifest_extras')
-      check_valid(res, 'manifest_boards')
-      check_valid(res, 'manifest_images')
-      check_valid(res, 'manifest_sounds')
+      check_valid(res, 'manifest_boards[aboutme]')
       
       expect(val[:sub_results].length).to eq(98)
       r = val[:sub_results][0]
-      expect(r[:filename]).to eq('aboutme.obf')
+      expect(r[:filename]).to eq('boards/aboutme.obf')
       expect(r[:filesize]).to eq(10632)
       expect(r[:valid]).to eq(false)
       expect(r[:errors]).to eq(38)

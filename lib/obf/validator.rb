@@ -193,17 +193,54 @@ module OBF
                 end
               end
             end
-            add_check('manifest_boards', 'manifest.json referenced boards') do
-            end
             
-            add_check('manifest_images', 'manifest.json referenced images') do
+            found_paths = ['manifest.json']
+            if json['paths'] && json['paths']['boards'] && json['paths']['boards'].is_a?(Hash)
+              json['paths']['boards'].each do |id, path|
+                add_check("manifest_boards[#{id}]", "manifest.json path.boards.#{id}") do
+                  found_paths << path
+                  if !zipper.glob(path)
+                    err "board path (#{path}) not found in the zip package"
+                  end
+                  board_json = JSON.parse(zipper.read(path)) rescue nil
+                  if !board_json || board_json['id'] != id
+                    err "board at path (#{path}) defined in manifest with id \"#{id}\" but actually has id \"#{board_json['id']}\""
+                  end
+                end
+              end
             end
 
-            add_check('manifest_sounds', 'manifest.json referenced sounds') do
+            if json['paths'] && json['paths']['images'] && json['paths']['images'].id_a?(Hash)
+              json['paths']['images'].each do |id, path|
+                add_check("manifest_images[#{id}]", "manifest.json path.images.#{id}") do
+                  found_paths << path
+                  if !zipper.glob(path)
+                    err "image path (#{path}) not found in the zip package"
+                  end
+                end
+              end
+            end            
+
+            if json['paths'] && json['paths']['sounds'] && json['paths']['sounds'].id_a?(Hash)
+              json['paths']['sounds'].each do |id, path|
+                add_check("manifest_sounds[#{id}]", "manifest.json path.sounds.#{id}") do
+                  found_paths << path
+                  if !zipper.glob(path)
+                    err "sound path (#{path}) not found in the zip package"
+                  end
+                end
+              end
+            end
+            
+            actual_paths = zipper.all_files
+            add_check('extra_paths', 'manifest.json extra paths') do
+              (actual_paths - found_paths).each do |path|
+                warn "the file \"#{path}\" isn't listed in manifest.json"
+              end
             end
             
             sub_results = []
-            if json['paths']['boards'] && json['paths']['boards'].is_a?(Hash)
+            if json['paths'] && json['paths']['boards'] && json['paths']['boards'].is_a?(Hash)
               json['paths']['boards'].each do |key, path|
                 sub = Validator.validate_obf(path, {'zipper' => zipper})
                 sub_results << sub
@@ -211,6 +248,7 @@ module OBF
             end
             @sub_checks = sub_results
           end
+          
           if zipper.glob('manifest.json').length > 0
             json = JSON.parse(zipper.read('manifest.json')) rescue nil
             if json['root'] && json['format'] && json['format'].match(/^open-board-/)
