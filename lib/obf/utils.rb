@@ -73,9 +73,8 @@ module OBF::Utils
           end
         end
         return type if type
-#         rescue => e
-#           puts e.class.to_s
-#           puts e.message.to_s
+      rescue => e
+        return :unknown
       end
     end
     return :unknown

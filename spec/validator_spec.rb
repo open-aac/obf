@@ -15,15 +15,64 @@ describe OBF::Validator do
     res[0]
   end
   
+  describe "validate_file" do
+    it "should handle .obf files" do
+      val = OBF::Validator.validate_file('./spec/samples/aboutme.json')
+      expect(val[:valid]).to eq(false)
+      expect(val[:errors]).to eq(36)
+      expect(val[:warnings]).to eq(2)
+      res = val[:results]
+      expect(res).to be_is_a(Array)
+      expect(res.length).to eq(49)
+    end
+    
+    it "should handle .obz files" do
+      val = OBF::Validator.validate_obz('./spec/samples/deep_simple.zip')
+      expect(val[:valid]).to eq(false)
+      expect(val[:errors]).to eq(2955)
+      expect(val[:warnings]).to eq(106)
+      res = val[:results]
+      expect(res).to be_is_a(Array)
+      expect(res.length).to eq(10)
+    end
+    
+    it "should not error on unrecognized files" do
+      val = OBF::Validator.validate_file('./obf.gemspec')
+      expect(val[:valid]).to eq(false)
+      expect(val[:errors]).to eq(1)
+      expect(val[:results].length).to eq(1)
+      expect(val[:results][0]['valid']).to eq(false)
+      expect(val[:results][0]['error']).to eq('file must be an .obf JSON file or a .obz zip package')
+
+      val = OBF::Validator.validate_file('./spec/samples/sfy.data')
+      expect(val[:valid]).to eq(false)
+      expect(val[:errors]).to eq(1)
+      expect(val[:results].length).to eq(1)
+      expect(val[:results][0]['valid']).to eq(false)
+      expect(val[:results][0]['error']).to eq('file must be an .obf JSON file or a .obz zip package')
+
+      val = OBF::Validator.validate_file('./spec/samples/p4me_1.zip')
+      expect(val[:valid]).to eq(false)
+      expect(val[:errors]).to eq(1)
+      expect(val[:results].length).to eq(1)
+      expect(val[:results][0]['valid']).to eq(false)
+      expect(val[:results][0]['error']).to eq('file must be an .obf JSON file or a .obz zip package')
+    end
+  end
+  
   describe "validate_obf" do
     it "should validate" do
       val = OBF::Validator.validate_obf('./spec/samples/aboutme.json')
       expect(val[:valid]).to eq(false)
       expect(val[:errors]).to eq(36)
-      expect(val[:warnings]).to eq(1)
+      expect(val[:warnings]).to eq(2)
       res = val[:results]
       expect(res).to be_is_a(Array)
-      expect(res.length).to eq(48)
+      expect(res.length).to eq(49)
+      
+      record = check_valid(res, 'filename')
+      expect(record['warnings'].length).to eq(1)
+      expect(record['warnings'][0]).to eq("filename should end with .obf")
       
       check_valid(res, 'valid_json')
       check_valid(res, 'to_external')
@@ -45,6 +94,58 @@ describe OBF::Validator do
       record = check_invalid(res, 'buttons[0]')
       expect(record['error']).to eq("button.background_color must be a valid rgb or rgba value if defined (\"#ffff32\" is invalid)")
       check_valid(res, 'buttons[17]')
+    end
+    
+    it "should error on non-obf file" do
+      val = OBF::Validator.validate_obf('./spec/samples/sfy.data')
+      expect(val[:valid]).to eq(false)
+      expect(val[:errors]).to eq(1)
+      expect(val[:warnings]).to eq(1)
+      res = val[:results]
+      expect(res).to be_is_a(Array)
+      expect(res.length).to eq(2)
+    end
+  end
+  
+  describe "validate_obz" do
+    it "should validate" do
+      val = OBF::Validator.validate_obz('./spec/samples/deep_simple.zip')
+      expect(val[:valid]).to eq(false)
+      expect(val[:errors]).to eq(2955)
+      expect(val[:warnings]).to eq(106)
+      res = val[:results]
+      expect(res).to be_is_a(Array)
+      expect(res.length).to eq(10)
+      
+      record = check_valid(res, 'filename')
+      expect(record['warnings'][0]).to eq("filename should end with .obz")
+      check_valid(res, 'zip')
+      check_valid(res, 'manifest')
+      check_valid(res, 'manifest_format')
+      check_valid(res, 'manifest_root')
+      check_valid(res, 'manifest_paths')
+      check_valid(res, 'manifest_extras')
+      check_valid(res, 'manifest_boards')
+      check_valid(res, 'manifest_images')
+      check_valid(res, 'manifest_sounds')
+      
+      expect(val[:sub_results].length).to eq(98)
+      r = val[:sub_results][0]
+      expect(r[:filename]).to eq('aboutme.obf')
+      expect(r[:filesize]).to eq(10632)
+      expect(r[:valid]).to eq(false)
+      expect(r[:errors]).to eq(38)
+      expect(r[:warnings]).to eq(1)
+    end
+    
+    it "should error on non-zip file" do
+      val = OBF::Validator.validate_obz('./spec/samples/sfy.data')
+      expect(val[:valid]).to eq(false)
+      expect(val[:errors]).to eq(1)
+      expect(val[:warnings]).to eq(1)
+      res = val[:results]
+      expect(res).to be_is_a(Array)
+      expect(res.length).to eq(2)
     end
   end
 end
