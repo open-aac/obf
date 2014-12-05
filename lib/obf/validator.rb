@@ -61,13 +61,15 @@ module OBF
     
     def self.validate_obf(path, opts={})
       v = self.new
-      fn = File.basename(path)
+      fn = fn
       filesize = 0
       content = nil
       if opts['zipper']
+        fn = path
         content = opts['zipper'].read(path)
         filesize = opts['zipper'].glob(path)[0].size
       else
+        fn = File.basename(path)
         content = File.read(path)
         filesize = File.size(path)
       end
