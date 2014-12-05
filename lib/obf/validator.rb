@@ -10,7 +10,7 @@ module OBF
       begin
         block.call
       rescue ValidationError => e
-        @errored = true
+        @errors += 1
         @checks[-1]['valid'] = false
         @checks[-1]['error'] = e.message
         @blocked = true if e.blocker
@@ -22,14 +22,28 @@ module OBF
     end
     
     def warn(message)
-      @warned = true
+      @warnings += 1
       @checks[-1]['warnings'] ||= []
       @checks[-1]['warnings'] << message
     end
     
+    def errors
+      @errors || 0
+    end
+    
+    def warnings
+      @warnings || 0
+    end
+    
     def self.validate_obf(path)
       v = self.new
-      v.validate_obf(path)
+      results = v.validate_obf(path)
+      {
+        :valid => v.errors == 0,
+        :errors => v.errors,
+        :warnings => v.warnings,
+        :results => results
+      }
     end
     
     def self.validate_obz(path)
@@ -38,12 +52,14 @@ module OBF
     def validate_obf(path, opts={})
       @blocked = nil
       @errored = false
+      @warnings = 0
+      @errors = 0
       @checks = []
       
       # TODO enforce extra attributes being defined with ext_
 
       json = nil
-      add_check('valid_json', "Valid JSON File") do
+      add_check('valid_json', "JSON File") do
         begin
           json = JSON.parse(File.read(path))
         rescue => e
@@ -52,7 +68,7 @@ module OBF
       end
     
       ext = nil
-      add_check('to_external', "Valid OBF Structure") do
+      add_check('to_external', "OBF Structure") do
         begin
           ext = External.from_obf(path, {})
         rescue External::StructureError => e
@@ -60,7 +76,7 @@ module OBF
         end
       end
     
-      add_check('format_version', "Valid Format Version") do
+      add_check('format_version', "format version") do
         if !ext['format']
           err "format attribute is required, set to #{FORMAT}"
         end
@@ -72,20 +88,20 @@ module OBF
         end
       end
     
-      add_check('id', "Valid Board ID") do
+      add_check('id', "board ID") do
         if !ext['id']
           err "id attribute is required"
         end
       end
     
-      add_check('locale', "Valid Locale") do
+      add_check('locale', "locale") do
         if !ext['locale']
           err "locale attribute is required, please set to \"en\" for English"
         end
       end
       
-      add_check('extras', "Extra Attributes") do
-        attrs = ['format', 'id', 'locale', 'url', 'data_url', 'name', 'description_html', 'buttons', 'images', 'sounds', 'grid', 'license']
+      add_check('extras', "extra attributes") do
+        attrs = ['format', 'id', 'locale', 'url', 'data_url', 'name', 'description_html', 'buttons', 'buttons_hash', 'images', 'images_hash', 'sounds', 'sounds_hash', 'grid', 'license']
         ext.keys.each do |key|
           if !attrs.include?(key) && !key.match(/^ext_/)
             warn "#{key} attribute is not defined in the spec, should be prefixed with ext_yourapp_"
@@ -93,7 +109,7 @@ module OBF
         end
       end
     
-      add_check('description', "Description Attributes") do
+      add_check('description', "descriptive attributes") do
         if !ext['name']
           warn "name attribute is strongly recommended"
         end
@@ -102,7 +118,7 @@ module OBF
         end
       end
     
-      add_check('buttons', "Valid buttons attribute") do
+      add_check('buttons', "buttons attribute") do
         if !ext['buttons']
           err "buttons attribute is required"
         elsif !ext['buttons'].is_a?(Array)
@@ -110,7 +126,7 @@ module OBF
         end
       end
     
-      add_check('grid', "Valid grid attribute") do
+      add_check('grid', "grid attribute") do
         if !ext['grid']
           err "grid attribute is required"
         elsif !ext['grid'].is_a?(Hash)
@@ -144,7 +160,7 @@ module OBF
         end
       end
       
-      add_check('grid_ids', "Valid Button IDs in grid.order attribute") do
+      add_check('grid_ids', "button IDs in grid.order attribute") do
         button_ids = []
         if ext['buttons'] && ext['buttons'].is_a?(Array)
           ext['buttons'].each{|b| button_ids << b['id'] if b.is_a?(Hash) && b['id'] }
@@ -165,7 +181,7 @@ module OBF
           end
         end
         warn("board has no buttons defined in the grid") if used_button_ids.length == 0
-        warn("not all defined buttons were included in the grid order") if (button_ids = used_button_ids).length > 0
+        warn("not all defined buttons were included in the grid order (#{(button_ids - used_button_ids).join(',')})") if (button_ids - used_button_ids).length > 0
       end
       
       unless opts['obz']
@@ -173,7 +189,7 @@ module OBF
         if ext['buttons'] && ext['buttons'].is_a?(Array)
           ext['buttons'].each{|b| button_image_ids << b['image_id'] if b.is_a?(Hash) && b['image_id'] }
         end
-        add_check('images', "Valid images attribute") do
+        add_check('images', "images attribute") do
           
           if !ext['images']
             err "images attribute is required"
@@ -184,7 +200,7 @@ module OBF
         
         if ext['images'] && ext['images'].is_a?(Array)
           ext['images'].each_with_index do |image, idx|
-            add_check("image[#{idx}]", "Valid image at [#{idx}]") do
+            add_check("image[#{idx}]", "image at images[#{idx}]") do
               if !image.is_a?(Hash)
                 err "image must be a hash"
               elsif !image['id']
@@ -213,7 +229,7 @@ module OBF
           end
         end
 
-        add_check('sounds', "Valid sounds attribute") do
+        add_check('sounds', "sounds attribute") do
           
           if !ext['sounds']
             err "sounds attribute is required"
@@ -224,7 +240,7 @@ module OBF
         
         if ext['sounds'] && ext['sounds'].is_a?(Array)
           ext['sounds'].each_with_index do |sound, idx|
-            add_check("sounds[#{idx}]", "Valid sound at [#{idx}]") do
+            add_check("sounds[#{idx}]", "sound at sounds[#{idx}]") do
               if !sound.is_a?(Hash)
                 err "sound must be a hash"
               elsif !sound['id']
@@ -252,7 +268,7 @@ module OBF
       
       if ext['buttons'] && ext['buttons'].is_a?(Array)
         ext['buttons'].each_with_index do |button, idx|
-          add_check("buttons[#{idx}]", "Valid button at [#{idx}]") do
+          add_check("buttons[#{idx}]", "button at buttons[#{idx}]") do
             if !button.is_a?(Hash)
               err "button must be a hash"
             elsif !button['id']

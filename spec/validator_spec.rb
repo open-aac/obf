@@ -17,7 +17,11 @@ describe OBF::Validator do
   
   describe "validate_obf" do
     it "should validate" do
-      res = OBF::Validator.validate_obf('./spec/samples/aboutme.json')
+      val = OBF::Validator.validate_obf('./spec/samples/aboutme.json')
+      expect(val[:valid]).to eq(false)
+      expect(val[:errors]).to eq(36)
+      expect(val[:warnings]).to eq(1)
+      res = val[:results]
       expect(res).to be_is_a(Array)
       expect(res.length).to eq(48)
       
@@ -27,10 +31,13 @@ describe OBF::Validator do
       check_valid(res, 'id')
       check_invalid(res, 'locale')
       check_valid(res, 'extras')
-      check_valid(res, 'description')
+      record = check_valid(res, 'description')
+      expect(record['warnings'].length).to eq(1)
+      expect(record['warnings'][0]).to eq("description_html attribute is recommended")
       check_valid(res, 'buttons')
       check_valid(res, 'grid')
-      check_valid(res, 'grid_ids')
+      record = check_valid(res, 'grid_ids')
+      expect(record['warnings']).to eq(nil)
       check_valid(res, 'images')
       record = check_invalid(res, 'image[0]')
       expect(record['error']).to eq("image.width must be a valid positive number")
