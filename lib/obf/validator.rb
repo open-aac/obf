@@ -37,8 +37,11 @@ module OBF
     
     def self.validate_obf(path)
       v = self.new
+      fn = File.basename(path)
       results = v.validate_obf(path)
       {
+        :filename => fn,
+        :filesize => File.size(path),
         :valid => v.errors == 0,
         :errors => v.errors,
         :warnings => v.warnings,
@@ -75,6 +78,7 @@ module OBF
           err "Couldn't parse structure: #{e.message}", true
         end
       end
+      ext = json
     
       add_check('format_version', "format version") do
         if !ext['format']
@@ -101,7 +105,7 @@ module OBF
       end
       
       add_check('extras', "extra attributes") do
-        attrs = ['format', 'id', 'locale', 'url', 'data_url', 'name', 'description_html', 'buttons', 'buttons_hash', 'images', 'images_hash', 'sounds', 'sounds_hash', 'grid', 'license']
+        attrs = ['format', 'id', 'locale', 'url', 'data_url', 'name', 'description_html', 'buttons', 'images', 'sounds', 'grid', 'license']
         ext.keys.each do |key|
           if !attrs.include?(key) && !key.match(/^ext_/)
             warn "#{key} attribute is not defined in the spec, should be prefixed with ext_yourapp_"
