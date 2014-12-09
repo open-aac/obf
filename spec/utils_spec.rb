@@ -209,5 +209,8 @@ describe OBF::Utils do
     it "should properly identify a sfy file" do
       expect(OBF::Utils.identify_file('./spec/samples/sfy.data')).to eq(:sfy)
     end
+    it "should properly identify a sgrid file" do
+      expect(OBF::Utils.identify_file('./spec/samples/grid.xml')).to eq(:sgrid)
+    end
   end
 end

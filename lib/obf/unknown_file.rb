@@ -11,6 +11,8 @@ module OBF::UnknownFile
       OBF::Picto4me.to_external(path)
     elsif type == :sfy
       OBF::Sfy.to_external(path)
+    elsif type == :sgrid
+      OBF::Sgrid.to_external(path)
     else
       raise "unrecognized file type"
     end

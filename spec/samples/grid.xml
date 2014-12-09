@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sensorygrid
+xmlns="http://schemas.sensorysoftware.com/2011/thegrid2"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://schemas.sensorysoftware.com/2011/thegrid2 grid.xsd">
+  <grid workspace_x="1" workspace_y="1">
+    <rows>3</rows>
+    <cols>3</cols>
+    <selfclosing>0</selfclosing>
+    <titlebartext></titlebartext>
+    <customblockscan>0</customblockscan>
+    <predictionsource>0</predictionsource>
+    <oskcellratio>0</oskcellratio>
+    <background style="0">
+      <backcolour>12487023</backcolour>
+      <backcolour2>0</backcolour2>
+    </background>
+    <commands>
+      <command>
+        <id>action.speakall</id>
+      </command>
+      <command>
+        <id>action.clear</id>
+      </command>
+    </commands>
+    <cells>
+      <cell x="1" y="1">
+        <stylepreset>Blank cell (no style)</stylepreset>
+        <scanblock>1</scanblock>
+        <magnifyx>2</magnifyx>
+      </cell>
+      <cell x="2" y="1">
+        <stylepreset>Blank cell (no style)</stylepreset>
+        <scanblock>1</scanblock>
+      </cell>
+      <!--Jump home-->
+      <cell x="3" y="1">
+        <stylepreset>Jump cell</stylepreset>
+        <scanblock>1</scanblock>
+        <caption><![CDATA[Jump home]]></caption>
+        <tooltip><![CDATA[Jump home]]></tooltip>
+        <picture>[Grid2x]jump.home.wmf</picture>
+        <commands>
+          <command>
+            <id>jump.home</id>
+          </command>
+        </commands>
+      </cell>
+
+      <!--Speak cell-->
+      <cell x="1" y="2">
+        <stylepreset>Action cell</stylepreset>
+        <scanblock>1</scanblock>
+        <caption><![CDATA[Speak]]></caption>
+        <tooltip><![CDATA[Speak]]></tooltip>
+        <picture>[Grid2x]action.speakall.wmf</picture>
+        <commands>
+          <command>
+            <id>action.speakall</id>
+          </command>
+        </commands>
+      </cell>
+      
+      <!--Clear cell-->
+      <cell x="2" y="2">
+        <stylepreset>Action cell</stylepreset>
+        <scanblock>1</scanblock>
+        <caption><![CDATA[Clear]]></caption>
+        <tooltip><![CDATA[Clear]]></tooltip>
+        <picture>[Grid2x]action.clear.wmf</picture>
+        <commands>
+          <command>
+            <id>action.clear</id>
+          </command>
+        </commands>
+      </cell>
+
+      <!--Jump back-->
+      <cell x="3" y="2">
+        <stylepreset>Jump cell</stylepreset>
+        <scanblock>1</scanblock>
+        <caption><![CDATA[Jump back]]></caption>
+        <tooltip><![CDATA[Jump back]]></tooltip>
+        <picture>[Grid2x]jump.back.wmf</picture>
+        <commands>
+          <command>
+            <id>jump.back</id>
+          </command>
+        </commands>
+      </cell>
+
+      <!--Vocab cells-->
+      <cell x="1" y="3">
+        <stylepreset>Vocab cell</stylepreset>
+        <scanblock>1</scanblock>
+        <caption><![CDATA[How are you?]]></caption>
+        <tooltip><![CDATA[How are you?]]></tooltip>
+        <picture>[WIDGIT]widgit rebus 06\symbols 6a\how are you.emf</picture>
+        <commands>
+          <command>
+            <id>type</id>
+            <parameter index="1"><![CDATA[How are you? ]]></parameter>
+          </command>
+        </commands>
+      </cell>
+      <cell x="2" y="3">
+        <stylepreset>Vocab cell</stylepreset>
+        <scanblock>1</scanblock>
+        <caption><![CDATA[Hello]]></caption>
+        <tooltip><![CDATA[Hello]]></tooltip>
+        <picture>[WIDGIT]widgit rebus\h\hello.emf</picture>
+        <commands>
+          <command>
+            <id>type</id>
+            <parameter index="1"><![CDATA[Hello ]]></parameter>
+          </command>
+        </commands>
+      </cell>
+      <cell x="3" y="3">
+        <stylepreset>Vocab cell</stylepreset>
+        <scanblock>1</scanblock>
+        <caption><![CDATA[I like chocolate]]></caption>
+        <tooltip><![CDATA[I like chocolate]]></tooltip>
+        <picture>[WIDGIT]widgit rebus\c\chocolate.emf</picture>
+        <commands>
+          <command>
+            <id>type</id>
+            <parameter index="1"><![CDATA[I like chocolate ]]></parameter>
+          </command>
+        </commands>
+      </cell>
+    </cells>
+  </grid>
+</sensorygrid>

@@ -56,6 +56,14 @@ module OBF::Utils
       rescue CFFormatError => e
       end
       
+      xml = Nokogiri::XML(File.open(path)) rescue nil
+      if xml && xml.children.length > 0
+        if xml.children[0].name == 'sensorygrid'
+          return :sgrid
+        end
+        return :unknown
+      end
+
       begin
         type = nil
         load_zip(path) do |zipper|
@@ -73,8 +81,7 @@ module OBF::Utils
           end
         end
         return type if type
-      rescue => e
-        return :unknown
+      rescue Zip::Error => e
       end
     end
     return :unknown

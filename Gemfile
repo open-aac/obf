@@ -6,6 +6,7 @@ gem 'mime-types'
 gem 'rubyzip'
 gem 'prawn'
 gem 'CFPropertyList'
+gem 'nokogiri'
 
 group :test do
   gem 'rspec', :require => "spec"
