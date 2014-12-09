@@ -518,7 +518,7 @@ module OBF
               err "button.action must start with either : or + if defined"
             end
 
-            attrs = ['id', 'label', 'vocalization', 'image_id', 'hidden', 'background_color', 'border_color', 'action', 'load_board', 'top', 'left', 'width', 'height']
+            attrs = ['id', 'label', 'vocalization', 'image_id', 'sound_id', 'hidden', 'background_color', 'border_color', 'action', 'load_board', 'top', 'left', 'width', 'height']
             button.keys.each do |key|
               if !attrs.include?(key) && !key.match(/^ext_/)
                 warn "button.#{key} attribute is not defined in the spec, should be prefixed with ext_yourapp_"

@@ -120,11 +120,12 @@ module OBF::External
         'duration' => original_sound['duration'],
         'license' => OBF::Utils.parse_license(original_sound['license']),
         'url' => original_sound['url'],
+        'data' => original_sound['data'],
         'data_url' => original_sound['data_url'],
         'content_type' => original_sound['content_type']
       }
       if !path_hash
-        sound['data'] = OBF::Utils.sound_base64(sound['url'])
+        sound['data'] = OBF::Utils.sound_base64(sound['url']) if sound['url']
       else
         if path_hash['sounds'] && path_hash['sounds'][sound['id']]
           sound['path'] = path_hash['sounds'][sound['id']]['path']
