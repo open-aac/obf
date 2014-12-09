@@ -55,6 +55,9 @@ module OBF::External
           button['load_board']['path'] = "board_#{original_button['load_board']['id']}.obf"
         end
       end
+      if original_button['hidden']
+        button['hidden'] = original_button['hidden']
+      end
       if original_button['url']
         button['url'] = original_button['url']
       end
