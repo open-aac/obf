@@ -13,8 +13,6 @@ module OBF::Sgrid
   def self.to_external(path)
     xml = Nokogiri::XML(File.open(path))
     grid = xml.css('sensorygrid grid')[0]
-    puts grid.to_s
-    puts grid.css('rows')[0].to_s
     rows = html_at(grid, 'rows').to_i
     columns = html_at(grid, 'cols').to_i
     board = {
@@ -119,7 +117,6 @@ module OBF::Sgrid
           'id' => image_id
         }
         image_id += 1
-        puts picture.to_json
         match = picture.match(/^(\[\w+\])?(.+)$/)
         symbol_set = match && match[1][1..-2]
         filename = match && match[2]

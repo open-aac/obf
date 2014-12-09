@@ -452,6 +452,7 @@ describe OBF::External do
           'duration' => nil,
           'license' => {'type' => 'private'},
           'url' => 'http://example.com/sound.mp3',
+          'data' => nil,
           'data_url' => nil,
           'content_type' => 'text/plaintext',
           'path' => "sounds/sound_#{b['sounds'][0]['id']}"

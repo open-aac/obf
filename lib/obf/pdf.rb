@@ -111,7 +111,7 @@ module OBF::PDF
         obj['grid']['order'].each_with_index do |buttons, row|
           buttons.each_with_index do |button_id, col|
             button = obj['buttons'].detect{|b| b['id'] == button_id }
-            next unless button
+            next unless button && button['hidden'] != true
             x = (padding * col) + (col * button_width)
             y = text_height + padding - (padding * row) + grid_height - (row * button_height)
             pdf.bounding_box([x, y], :width => button_width, :height => button_height) do
