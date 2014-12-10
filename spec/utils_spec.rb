@@ -33,9 +33,9 @@ describe OBF::Utils do
 
     it "should convert rgb to hex" do
       expect(OBF::Utils.fix_color('rgb(255, 0, 0)')).to eql('ff0000')
-      expect(OBF::Utils.fix_color('rgba(255, 0, 0, 0.8)', 'hex')).to eql('ff4848')
-      expect(OBF::Utils.fix_color('rgba(255, 0, 0, 0.5)', 'hex')).to eql('ffb3b3')
-      expect(OBF::Utils.fix_color('rgba(255, 0, 0, 0.3)', 'hex')).to eql('fffafa')
+      expect(OBF::Utils.fix_color('rgba(255, 0, 0, 0.75)', 'hex')).to eql('ff4040')
+      expect(OBF::Utils.fix_color('rgba(255, 0, 0, 0.5)', 'hex')).to eql('ff8080')
+      expect(OBF::Utils.fix_color('rgba(255, 0, 0, 0.25)', 'hex')).to eql('ffbfbf')
       expect(OBF::Utils.fix_color('rgba(255, 0, 0, 0.0)', 'hex')).to eql('ffffff')
 
       expect(OBF::Utils.fix_color('rgb(0, 0, 0)')).to eql('000000')
@@ -43,6 +43,9 @@ describe OBF::Utils do
       expect(OBF::Utils.fix_color('rgba(0, 0, 0, 0.5)', 'hex')).to eql('808080')
       expect(OBF::Utils.fix_color('rgba(0, 0, 0, 0.75)', 'hex')).to eql('404040')
       expect(OBF::Utils.fix_color('rgba(0, 0, 0, 0.0)', 'hex')).to eql('ffffff')
+      
+      expect(OBF::Utils.fix_color('rgba(255, 0, 0, 0.2)', 'hex')).to eql('ffcccc')
+      expect(OBF::Utils.fix_color('rgba(31, 52, 143, 0.5)', 'hex')).to eql('ffcccc')
     end
   end
 
