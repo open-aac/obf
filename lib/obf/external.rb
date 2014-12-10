@@ -292,6 +292,9 @@ module OBF::External
   end
   
   def self.to_pdf(board, dest_path, opts)
+    if board && board['boards']
+      opts['packet'] = true
+    end
     tmp_path = OBF::Utils.temp_path("stash")
     if opts['packet']
       OBF::Utils.as_progress_percent(0, 0.3) do
