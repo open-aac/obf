@@ -210,7 +210,7 @@ module OBF
               end
             end
 
-            if json['paths'] && json['paths']['images'] && json['paths']['images'].id_a?(Hash)
+            if json['paths'] && json['paths']['images'] && json['paths']['images'].is_a?(Hash)
               json['paths']['images'].each do |id, path|
                 add_check("manifest_images[#{id}]", "manifest.json path.images.#{id}") do
                   found_paths << path
@@ -221,7 +221,7 @@ module OBF
               end
             end            
 
-            if json['paths'] && json['paths']['sounds'] && json['paths']['sounds'].id_a?(Hash)
+            if json['paths'] && json['paths']['sounds'] && json['paths']['sounds'].is_a?(Hash)
               json['paths']['sounds'].each do |id, path|
                 add_check("manifest_sounds[#{id}]", "manifest.json path.sounds.#{id}") do
                   found_paths << path
