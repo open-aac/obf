@@ -71,5 +71,16 @@ describe OBF::OBZ do
 #      OBF::PDF.from_obz('./spec/samples/deep_simple.zip', './file.pdf')
     end
     
+    it "should parse a simple .obz file" do
+      res = OBF::External.from_obz('./spec/samples/links.obz', {})
+      expect(res['boards'].length).to eq(3)
+      expect(res['images'].length).to eq(0)
+      expect(res['sounds'].length).to eq(0)
+      
+      b = res['boards'][0]
+      expect(b['buttons'][0]['load_board']['id']).to eq('simple2')
+      expect(b['buttons'][1]['load_board']['id']).to eq('simple3')
+    end
+    
   end
 end

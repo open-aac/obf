@@ -265,6 +265,7 @@ module OBF::External
               path = button['load_board']['path'] || manifest[button['load_board']['id']]
               b = OBF::Utils.parse_obf(zipper.read(path))
               b['path'] = path
+              button['load_board']['id'] = b['id']
               unvisited_boards << b
             end
           end

@@ -45,7 +45,7 @@ describe OBF::Utils do
       expect(OBF::Utils.fix_color('rgba(0, 0, 0, 0.0)', 'hex')).to eql('ffffff')
       
       expect(OBF::Utils.fix_color('rgba(255, 0, 0, 0.2)', 'hex')).to eql('ffcccc')
-      expect(OBF::Utils.fix_color('rgba(31, 52, 143, 0.5)', 'hex')).to eql('ffcccc')
+      expect(OBF::Utils.fix_color('rgba(31, 52, 143, 0.5)', 'hex')).to eql('8f9ac7')
     end
   end
 
