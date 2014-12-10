@@ -80,7 +80,7 @@ module OBF::PDF
         pdf.fill_color "6D81D1"
         pdf.fill_and_stroke_polygon([5, 50], [35, 85], [35, 70], [95, 70], [95, 30], [35, 30], [35, 15])
         pdf.fill_color "ffffff"
-        pdf.text_box "Go Back", :at => [10, 90], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+        pdf.formatted_text_box [{:text => "Go Back", :anchor => "page1"}], :at => [10, 90], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
         pdf.fill_color "ffffff"
         pdf.fill_and_stroke_rounded_rectangle [110, 100], (doc_width - 200 - 20), 100, default_radius
         pdf.fill_color "DDDB54"
