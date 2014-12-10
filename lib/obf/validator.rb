@@ -204,7 +204,8 @@ module OBF
                   end
                   board_json = JSON.parse(zipper.read(path)) rescue nil
                   if !board_json || board_json['id'] != id
-                    err "board at path (#{path}) defined in manifest with id \"#{id}\" but actually has id \"#{board_json['id']}\""
+                    board_id = (board_json && board_json['id']) || "null"
+                    err "board at path (#{path}) defined in manifest with id \"#{id}\" but actually has id \"#{board_id}\""
                   end
                 end
               end
