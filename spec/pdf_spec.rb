@@ -36,6 +36,16 @@ describe OBF::PDF do
       expect(File.size(path2)).to be > 10
       File.unlink path2
     end
+    
+    it "should render a multi-page pre-generated obz" do
+      path2 = OBF::Utils.temp_path(["file", ".pdf"])
+      expect(OBF::PDF).to receive(:build_page).exactly(3).times
+      OBF::PDF.from_obz('./spec/samples/links.obz', path2)
+      expect(File.exist?(path2)).to eq(true)
+      expect(File.size(path2)).to be > 10
+      
+      File.unlink path2
+    end
   end
 
   describe "from_coughdrop" do
