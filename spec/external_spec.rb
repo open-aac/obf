@@ -51,11 +51,6 @@ describe OBF::External do
         'id' => 1,
         'label' => 'chicken', 
         'action' => '+chi',
-        'vocalization' => nil,
-        'left' => nil,
-        'top' => nil,
-        'width' => nil,
-        'height' => nil,
         'border_color' => 'rgb(170, 170, 170)',
         'background_color' => 'rgb(255, 255, 255)'
       })
@@ -63,23 +58,13 @@ describe OBF::External do
         'id' => 2,
         'label' => 'nuggets', 
         'action' => ':space',
-        'vocalization' => nil,
-        'left' => nil,
-        'top' => nil,
-        'width' => nil,
-        'height' => nil,
         'border_color' => 'rgb(170, 170, 170)',
         'background_color' => 'rgb(255, 255, 255)'
       })
       expect(json['buttons'][2]).to eq({
         'id' => 3,
         'label' => 'sauce', 
-        'action' => nil,
         'vocalization' => "I like sauce",
-        'left' => nil,
-        'top' => nil,
-        'width' => nil,
-        'height' => nil,
         'border_color' => 'rgb(170, 170, 170)',
         'background_color' => 'rgb(255, 255, 255)'
       })
@@ -114,17 +99,11 @@ describe OBF::External do
       expect(json['buttons'][0]).to eq({
         'id' => 1,
         'label' => 'chicken', 
-        'action' => nil,
-        'vocalization' => nil,
-        'left' => nil,
-        'top' => nil,
         'load_board' => {
           'id' => ref['id'], 
           'url' => "http://www.board.com/example", 
           'data_url' => "http://www.board.com/api/example"
         },
-        'width' => nil,
-        'height' => nil,
         'border_color' => 'rgb(170, 170, 170)',
         'background_color' => 'rgb(255, 255, 255)'
       })
@@ -167,8 +146,6 @@ describe OBF::External do
       list = []
       list << {
         'id' => b['images'][0]['id'],
-        'width' => nil,
-        'height' => nil,
         'license' => {'type' => 'private'},
         'url' => 'http://example.com/pic.png',
         'data_url' => "http://www.example.com/api/pic",
@@ -180,10 +157,8 @@ describe OBF::External do
       list = []
       list << {
         'id' => b['sounds'][0]['id'],
-        'duration' => nil,
         'license' => {'type' => 'private'},
         'url' => 'http://example.com/sound.mp3',
-        'data_url' => nil,
         'content_type' => 'text/plaintext',
         'data' => 'data:text/plaintext;base64,YWJj'
       }
@@ -220,12 +195,6 @@ describe OBF::External do
       expect(json['buttons'][0]).to eq({
         'id' => 1,
         'label' => 'chicken', 
-        'action' => nil,
-        'vocalization' => nil,
-        'left' => nil,
-        'top' => nil,
-        'width' => nil,
-        'height' => nil,
         'border_color' => 'rgb(170, 170, 170)',
         'background_color' => 'rgb(255, 255, 255)',
         'url' => 'http://www.example.com'
@@ -260,12 +229,6 @@ describe OBF::External do
       expect(json['buttons'][0]).to eq({
         'id' => 1,
         'label' => 'chicken', 
-        'action' => nil,
-        'vocalization' => nil,
-        'left' => nil,
-        'top' => nil,
-        'width' => nil,
-        'height' => nil,
         'border_color' => 'rgb(170, 170, 170)',
         'background_color' => 'rgb(255, 255, 255)',
         'ext_coughdrop_apps' =>  {'web' => {'launch_url' => 'http://www.example.com'}}
@@ -435,12 +398,8 @@ describe OBF::External do
         list = []
         list << {
           'id' => b['images'][0]['id'],
-          'width' => nil,
-          'height' => nil,
           'license' => {'type' => 'private'},
           'url' => 'http://example.com/pic.png',
-          'data_url' => nil,
-          'data' => nil,
           'content_type' => 'text/plaintext',
           'path' => "images/image_#{b['images'][0]['id']}"
         }
@@ -449,11 +408,8 @@ describe OBF::External do
         list = []
         list << {
           'id' => b['sounds'][0]['id'],
-          'duration' => nil,
           'license' => {'type' => 'private'},
           'url' => 'http://example.com/sound.mp3',
-          'data' => nil,
-          'data_url' => nil,
           'content_type' => 'text/plaintext',
           'path' => "sounds/sound_#{b['sounds'][0]['id']}"
         }

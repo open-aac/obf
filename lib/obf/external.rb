@@ -81,7 +81,7 @@ module OBF::External
           button['sound_id'] = sound['id']
         end
       end
-      res['buttons'] << button
+      res['buttons'] << trim_empties(button)
       OBF::Utils.update_current_progress(idx.to_f / button_count.to_f)
     end
 
@@ -97,7 +97,7 @@ module OBF::External
         'content_type' => original_image['content_type']
       }
       if !path_hash
-        image['data'] = OBF::Utils.image_base64(image['url']) if image['url']
+        image['data'] ||= OBF::Utils.image_base64(image['url']) if image['url']
       else
         if path_hash['images'] && path_hash['images'][image['id']]
           image['path'] = path_hash['images'][image['id']]['path']
@@ -114,7 +114,7 @@ module OBF::External
           end
         end
       end
-      res['images'] << image
+      res['images'] << trim_empties(image)
     end
     
     sounds.each do |original_sound|
@@ -147,7 +147,7 @@ module OBF::External
         sound['path'] = zip_path
       end
       
-      res['sounds'] << sound
+      res['sounds'] << trim_empties(sound)
     end
 
     res['grid'] = OBF::Utils.parse_grid(hash['grid']) # TODO: more robust parsing here
@@ -164,6 +164,14 @@ module OBF::External
     return dest_path
   end
   
+  def self.trim_empties(hash)
+    new_hash = {}
+    hash.each do |key, val|
+      new_hash[key] = val if val != nil
+    end
+    new_hash
+  end
+  
   def self.from_obf(obf_json_or_path, opts)
     obj = obf_json_or_path
     if obj.is_a?(String)
@@ -174,19 +182,16 @@ module OBF::External
     
     ['images', 'sounds'].each do |type|
       (obj[type] || []).each do |item|
-        item['data_or_url'] = item['data']
-        if !item['data_or_url'] && item['path'] && opts['zipper']
+        if !item['data'] && item['path'] && opts['zipper']
           content_type = item['content_type']
           data = opts['zipper'].read(item['path'])
           str = "data:" + content_type
           str += ";base64," + Base64.strict_encode64(data)
-          record = klass.create(:user => opts['user'])
-          item['data_or_url'] = str
+          item['data'] = str
         end
-        item['data_or_url'] ||= item['url']
         if item['path']
-          opts[list] ||= {} 
-          opts[list][item['path']] ||= item
+          opts[type] ||= {} 
+          opts[type][item['path']] ||= item
         end
       end
     end
