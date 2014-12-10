@@ -424,8 +424,8 @@ module OBF
               err "image.height must be a valid positive number"
             elsif !image['content_type'] || !image['content_type'].match(/^image\/.+$/)
               err "image.content_type must be a valid image mime type"
-            elsif !image['url'] && !image['data'] && !image['symbol']
-              err "image must have data, url or symbol attribute defined"
+            elsif !image['url'] && !image['data'] && !image['symbol'] && !image['path']
+              err "image must have data, url, path or symbol attribute defined"
             elsif image['data'] && !image['data'].match(/^data:image\/.+;base64,.+$/)
               err "image.data must be a valid data URI if defined"
             elsif image['symbol'] && !image['symbol'].is_a?(Hash)
@@ -470,8 +470,8 @@ module OBF
               err "sound.duration must be a valid positive number"
             elsif !sound['content_type'] || !sound['content_type'].match(/^audio\/.+$/)
               err "sound.content_type must be a valid audio mime type"
-            elsif !sound['url'] && !sound['data'] && !sound['symbol']
-              err "sound must have data, url or symbol attribute defined"
+            elsif !sound['url'] && !sound['data'] && !sound['symbol'] && !sound['path']
+              err "sound must have data, url, path or symbol attribute defined"
             elsif sound['data'] && !sound['data'].match(/^data:audio\/.+;base64,.+$/)
               err "sound.data must be a valid data URI if defined"
             end
