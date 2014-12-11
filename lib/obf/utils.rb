@@ -265,7 +265,7 @@ module OBF::Utils
     end
     
     def read(path)
-      entry = @zipfile.glob(path).first
+      entry = @zipfile.glob(path).first rescue nil
       entry ? entry.get_input_stream.read : nil
     end
     

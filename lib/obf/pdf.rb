@@ -185,10 +185,12 @@ module OBF::PDF
             all_boards = visited_boards + unvisited_boards
             if all_boards.none?{|b| b['id'] == button['load_board']['id'] || b['path'] == button['load_board']['path'] }
               path = button['load_board']['path'] || manifest[button['load_board']['id']]
-              b = OBF::Utils.parse_obf(zipper.read(path))
-              b['path'] = path
-              button['load_board']['id'] = b['id']
-              unvisited_boards << b
+              if path
+                b = OBF::Utils.parse_obf(zipper.read(path))
+                b['path'] = path
+                button['load_board']['id'] = b['id']
+                unvisited_boards << b
+              end
             end
           end
         end
