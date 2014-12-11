@@ -141,8 +141,10 @@ module OBF::PDF
                 pdf.fill_color "ffffff"            
                 pdf.stroke_color "eeeeee"            
                 pdf.fill_and_stroke_rounded_rectangle [button_width - 25, button_height - 5], 20, text_height, 5
-                pdf.fill_color "000000"            
-                pdf.formatted_text_box [{:text => page, :anchor => "page#{page}"}], :at => [button_width - 25, button_height - 5], :width => 20, :height => text_height, :align => :center, :valign => :center
+                pdf.fill_color "000000"
+                if page
+                  pdf.formatted_text_box [{:text => page, :anchor => "page#{page}"}], :at => [button_width - 25, button_height - 5], :width => 20, :height => text_height, :align => :center, :valign => :center
+                end
               end
               
               pdf.fill_color "000000"

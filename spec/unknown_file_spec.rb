@@ -80,6 +80,13 @@ describe OBF::UnknownFile do
       expect(File.size(path)).to be > 10
     end
     
+    it "should convert to pdf with lots of settings" do
+      path2 = OBF::Utils.temp_path(["file", ".pdf"])
+      path = OBF::UnknownFile.to_pdf('./spec/samples/lots_of_stuff.obz', path2 + '.pdf')
+      expect(File.exist?(path)).to eq(true)
+      expect(File.size(path)).to be > 10
+    end
+    
     it "should convert to png" do
       ext = OBF::UnknownFile.to_external("./spec/samples/deep_simple.zip")
       path = OBF::Utils.temp_path("file.png")
