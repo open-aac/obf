@@ -270,7 +270,9 @@ module OBF::Utils
   end
   
   def self.image_attrs(path)
+    res = {}
     if path.match(/^data:/)
+      res['content_type'] = path.split(/;/)[0].split(/:/)[1]
       raw = Base64.strict_decode64(path.split(/\,/, 2)[1])
       file = Tempfile.new('file')
       path = file.path
@@ -288,7 +290,6 @@ module OBF::Utils
       end
     end
     data = `identify -verbose #{path}`
-    res = {}
     data.split(/\n/).each do |line|
       pre, post = line.sub(/^\s+/, '').split(/:\s/, 2)
       if pre == 'Geometry'
