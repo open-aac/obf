@@ -98,19 +98,34 @@ module OBF::External
       }
       if !path_hash
         image['data'] ||= OBF::Utils.image_base64(image['url']) if image['url']
+        if image['data'] && (!image['content_type'] || !image['width'] || !image['height'])
+          attrs = OBF::Utils.image_attrs(image['data'])
+          image['content_type'] ||= attrs['content_type']
+          image['width'] ||= attrs['width']
+          image['height'] ||= attrs['height']
+        end
       else
         if path_hash['images'] && path_hash['images'][image['id']]
           image['path'] = path_hash['images'][image['id']]['path']
+          image['content_type'] ||= path_hash['images'][image['id']]['content_type']
+          image['width'] ||= path_hash['images'][image['id']]['width']
+          image['height'] ||= path_hash['images'][image['id']]['height']
         else
           image_fetch = OBF::Utils.image_raw(image['url'] || image['data'])
           if image_fetch
             zip_path = "images/image_#{image['id']}#{image_fetch['extension']}"
             path_hash['images'] ||= {}
             path_hash['images'][image['id']] = {
-              'path' => zip_path
+              'path' => zip_path,
+              'content_type' => image_fetch['content_type'],
+              'width' => image_fetch['width'],
+              'height' => image_fetch['height']
             }
             path_hash['zip'].add(zip_path, image_fetch['data'])
             image['path'] = zip_path
+            image['content_type'] ||= image_fetch['content_type']
+            image['width'] ||= image_fetch['width']
+            image['height'] ||= image_fetch['height']
           end
         end
       end

@@ -110,10 +110,10 @@ module OBF::Utils
         'data' => File.read(url),
         'content_type' => types[0] && types[0].to_s
       }
-      attrs = image_attrs(url)
-      image['content_type'] ||= attrs['content_type']
-      image['width'] ||= attrs['width']
-      image['height'] ||= attrs['height']
+      if !image['content_type']
+        attrs = image_attrs(url)
+        image['content_type'] ||= attrs['content_type']
+      end
     end
     return nil unless image
     str = "data:" + image['content_type']
