@@ -20,11 +20,15 @@ module OBF::Utils
     elsif type.respond_to?(:extensions)
       extension = ("." + type.extensions[0]) if type && type.extensions && type.extensions.length > 0
     end
-    {
+    res = {
       'content_type' => content_type,
       'data' => data,
       'extension' => extension
     }
+    if content_type && content_type.match(/^image/)
+      res = image_attrs(data).merge(res)
+    end
+    res
   end
   
   def self.identify_file(path)
@@ -103,6 +107,7 @@ module OBF::Utils
         'data' => File.read(url),
         'content_type' => types[0] && types[0].to_s
       }
+      image = image_attrs(url).merge(image)
     end
     return nil unless image
     str = "data:" + image['content_type']
@@ -147,6 +152,9 @@ module OBF::Utils
       return nil
     end
     file.close
+    # TODO: maybe convert to jpg instead of png?
+    # see https://github.com/prawnpdf/prawn/issues/324
+    # in that case, fill the image with a white background, perhaps?
     `convert #{file.path} -density 1200 -resize 300x300 -background none -gravity center -extent 300x300 #{file.path}.png`
     "#{file.path}.png"
   end
@@ -255,6 +263,41 @@ module OBF::Utils
     res
   end
   
+  def self.image_attrs(path)
+    if path.match(/^data:/)
+      raw = Base64.strict_decode64(url.split(/\,/, 2)[1])
+      file = Tempfile.new('file')
+      path = file.path
+      file.binmode
+      file.write raw
+      file.close
+    else
+      is_file = File.exist?(path) rescue false
+      if !is_file
+        file = Tempfile.new('file')
+        file.binmode
+        file.write path
+        path = file.path
+        file.close
+      end
+    end
+    data = `identify -verbose #{path}`
+    res = {}
+    data.split(/\n/).each do |line|
+      pre, post = line.sub(/^\s+/, '').split(/:\s/, 2)
+      if pre == 'Geometry'
+        match = post.match(/(\d+)x(\d+)/)
+        if match && match[1] && match[2]
+          res['width'] = match[1].to_i
+          res['height'] = match[2].to_i
+        end
+      elsif pre == 'Mime type'
+        res['content_type'] = post
+      end
+    end
+    res
+  end
+  
   class Zipper
     def initialize(zipfile)
       @zipfile = zipfile
@@ -288,22 +331,11 @@ module OBF::Utils
       attrs['data'] = str
     
       if attrs['content_type'].match(/^image/)
-        fn = OBF::Utils.temp_path('file')
         file = Tempfile.new('file')
         file.binmode
         file.write raw
         file.close
-        data = `identify -verbose #{file.path}`
-        data.split(/\n/).each do |line|
-          pre, post = line.sub(/^\s+/, '').split(/:\s/, 2)
-          if pre == 'Geometry'
-            match = post.match(/(\d+)x(\d+)/)
-            if match && match[1] && match[2]
-              attrs['width'] = match[1].to_i
-              attrs['height'] = match[2].to_i
-            end
-          end
-        end
+        attrs = (OBF::Utils.image_attrs(file.path) || {}).merge(attrs)
       end
       attrs
     end
