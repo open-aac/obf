@@ -271,7 +271,7 @@ module OBF::Utils
   
   def self.image_attrs(path)
     if path.match(/^data:/)
-      raw = Base64.strict_decode64(url.split(/\,/, 2)[1])
+      raw = Base64.strict_decode64(path.split(/\,/, 2)[1])
       file = Tempfile.new('file')
       path = file.path
       file.binmode
