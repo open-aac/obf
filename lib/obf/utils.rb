@@ -302,6 +302,10 @@ module OBF::Utils
         res['content_type'] = post
       end
     end
+    if res['content_type'] && res['content_type'].match(/^image\/svg/)
+      res['width'] ||= 300
+      res['height'] ||= 300
+    end
     res
   end
   
