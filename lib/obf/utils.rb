@@ -26,7 +26,10 @@ module OBF::Utils
       'extension' => extension
     }
     if content_type && content_type.match(/^image/)
-      res = image_attrs(data).merge(res)
+      attrs = image_attrs(data)
+      res['content_type'] ||= attrs['content_type']
+      res['width'] ||= attrs['width']
+      res['height'] ||= attrs['height']
     end
     res
   end
@@ -107,7 +110,10 @@ module OBF::Utils
         'data' => File.read(url),
         'content_type' => types[0] && types[0].to_s
       }
-      image = image_attrs(url).merge(image)
+      attrs = image_attrs(url)
+      image['content_type'] ||= attrs['content_type']
+      image['width'] ||= attrs['width']
+      image['height'] ||= attrs['height']
     end
     return nil unless image
     str = "data:" + image['content_type']
@@ -335,7 +341,10 @@ module OBF::Utils
         file.binmode
         file.write raw
         file.close
-        attrs = (OBF::Utils.image_attrs(file.path) || {}).merge(attrs)
+        more_attrs = OBF::Utils.image_attrs(file.path)
+        attrs['content_type'] ||= more_attrs['content_type']
+        attrs['width'] ||= more_attrs['width']
+        attrs['height'] ||= more_attrs['height']
       end
       attrs
     end
