@@ -316,7 +316,7 @@ module OBF
       end
       
       add_check('extras', "extra attributes") do
-        attrs = ['format', 'id', 'locale', 'url', 'data_url', 'name', 'description_html', 'buttons', 'images', 'sounds', 'grid', 'license']
+        attrs = ['format', 'id', 'locale', 'url', 'data_url', 'name', 'description_html', 'default_layout', 'buttons', 'images', 'sounds', 'grid', 'license']
         ext.keys.each do |key|
           if !attrs.include?(key) && !key.match(/^ext_/)
             warn "#{key} attribute is not defined in the spec, should be prefixed with ext_yourapp_"
