@@ -26,7 +26,7 @@ module OBF::Utils
       'extension' => extension
     }
     if content_type && content_type.match(/^image/)
-      attrs = image_attrs(data)
+      attrs = image_attrs(data, extension)
       res['content_type'] ||= attrs['content_type']
       res['width'] ||= attrs['width']
       res['height'] ||= attrs['height']
@@ -269,12 +269,12 @@ module OBF::Utils
     res
   end
   
-  def self.image_attrs(path)
+  def self.image_attrs(path, extension='')
     res = {}
     if path.match(/^data:/)
       res['content_type'] = path.split(/;/)[0].split(/:/)[1]
       raw = Base64.strict_decode64(path.split(/\,/, 2)[1])
-      file = Tempfile.new('file')
+      file = Tempfile.new(['file', extension])
       path = file.path
       file.binmode
       file.write raw
@@ -282,7 +282,7 @@ module OBF::Utils
     else
       is_file = File.exist?(path) rescue false
       if !is_file
-        file = Tempfile.new('file')
+        file = Tempfile.new(['file', extension])
         file.binmode
         file.write path
         path = file.path
