@@ -114,7 +114,7 @@ describe OBF::Utils do
         'content_type' => 'image/png'
       })
       expect(OBF::Utils).to receive(:'`') do |str|
-        expect(str).to match(/^convert .* -resize 300x300 -background none -gravity center -extent 300x300 .*/)
+        expect(str).to match(/^convert .* -resize 300x300 -background white -gravity center -extent 300x300 .*/)
       end
       path = OBF::Utils.save_image({'url' => "http://www.example.com/pic.png"})
       expect(path).to match(/\.png$/)

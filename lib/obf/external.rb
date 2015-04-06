@@ -111,7 +111,7 @@ module OBF::External
           image['width'] ||= path_hash['images'][image['id']]['width']
           image['height'] ||= path_hash['images'][image['id']]['height']
         else
-          image_fetch = OBF::Utils.image_raw(image['url'] || image['data'])
+          image_fetch = OBF::Utils.image_raw(image['data'] || image['url'])
           if image_fetch
             zip_path = "images/image_#{image['id']}#{image_fetch['extension']}"
             path_hash['images'] ||= {}
