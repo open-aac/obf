@@ -25,12 +25,6 @@ module OBF::Utils
       'data' => data,
       'extension' => extension
     }
-    if content_type && content_type.match(/^image/)
-      attrs = image_attrs(data, extension)
-      res['content_type'] ||= attrs['content_type']
-      res['width'] ||= attrs['width']
-      res['height'] ||= attrs['height']
-    end
     res
   end
   
