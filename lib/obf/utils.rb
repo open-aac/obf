@@ -135,6 +135,7 @@ module OBF::Utils
     end
     type = MIME::Types[image['content_type']]
     type = type && type[0]
+    extension = nil
     if type.respond_to?(:preferred_extension)
       extension = type && ("." + type.preferred_extension)
     elsif type.respond_to?(:extensions)
@@ -152,11 +153,16 @@ module OBF::Utils
       return nil
     end
     file.close
-    # TODO: maybe convert to jpg instead of png?
-    # see https://github.com/prawnpdf/prawn/issues/324
-    # in that case, fill the image with a white background, perhaps?
-    `convert #{file.path} -density 1200 -resize 300x300 -background white -gravity center -extent 300x300 #{file.path}.png`
-    "#{file.path}.png"
+    if extension && ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'].include?(image['content_type']) && image['width'] < 1000 && image['width'] == image['height']
+      `cp #{file.path} #{file.path}.#{extension}`
+      "#{file.path}.#{extension}"
+    else
+      # TODO: maybe convert to jpg instead of png?
+      # see https://github.com/prawnpdf/prawn/issues/324
+      # in that case, fill the image with a white background, perhaps?
+      `convert #{file.path} -density 1200 -resize 300x300 -background white -gravity center -extent 300x300 #{file.path}.png`
+      "#{file.path}.png"
+    end
   end
   
   def self.sound_raw(url)
