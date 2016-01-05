@@ -153,10 +153,13 @@ module OBF::Utils
       return nil
     end
     file.close
-    if extension && ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'].include?(image['content_type']) && image['width'] < 1000 && image['width'] == image['height']
+    if extension && ['image/jpeg', 'image/jpg', 'image/gif'].include?(image['content_type']) && image['width'] < 1000 && image['width'] == image['height']
+      # png files need to be converted to make sure they don't have a transparent bg, or
+      # else performance takes a huge hit.
       `cp #{file.path} #{file.path}.#{extension}`
       "#{file.path}.#{extension}"
     else
+      puts image.to_json
       # TODO: maybe convert to jpg instead of png?
       # see https://github.com/prawnpdf/prawn/issues/324
       # in that case, fill the image with a white background, perhaps?
