@@ -61,3 +61,7 @@ We've talked about including some utilities to make translation easier. Basicall
 something that would take an .obf or .obz file and spit out a set of translation strings,
 and another something that would take an .obf or .obz file and a set of translation strings
 and generate a new, translated result.
+
+## License
+
+Licensed under the MIT License.
