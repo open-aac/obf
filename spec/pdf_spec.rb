@@ -10,7 +10,7 @@ describe OBF::PDF do
       OBF::PDF.from_obf(f.path, f2.path)
       f.unlink
       f2.rewind
-      expect(f2.size).to be > 2500
+      expect(f2.size).to be > 2400
       f2.unlink
     end
   end
