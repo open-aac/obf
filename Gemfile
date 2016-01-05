@@ -12,4 +12,4 @@ group :test do
   gem 'rspec', :require => "spec"
 end
 
-ruby "2.1.1"
+ruby "2.3.0"
