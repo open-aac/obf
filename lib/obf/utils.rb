@@ -159,7 +159,6 @@ module OBF::Utils
       `cp #{file.path} #{file.path}.#{extension}`
       "#{file.path}.#{extension}"
     else
-      puts image.to_json
       # TODO: maybe convert to jpg instead of png?
       # see https://github.com/prawnpdf/prawn/issues/324
       # in that case, fill the image with a white background, perhaps?
