@@ -66,14 +66,14 @@ module OBF::PDF
       text_height = 20
       header_height = 0
     
+      if options['pages']
+        page_num = options['pages'][obj['id']]
+        pdf.add_dest("page#{page_num}", pdf.dest_fit)
+      end
       # header
       if !options['headerless']
         header_height = 100
         pdf.bounding_box([0, doc_height], :width => doc_width, :height => 100) do
-          if options['pages']
-            page_num = options['pages'][obj['id']]
-            pdf.add_dest("page#{page_num}", pdf.dest_fit)
-          end
           pdf.line_width = 2
           pdf.font_size 16
         
