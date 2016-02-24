@@ -51,7 +51,7 @@ module OBF::PDF
           end
         end
       else
-        build_page(pdf, obj, {})
+        build_page(pdf, obj, {'headerless' => !!opts['headerless']})
       end
     
       pdf.render_file(dest_path)
