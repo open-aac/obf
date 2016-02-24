@@ -23,7 +23,7 @@ describe OBF::OBZ do
     it "should use the pdf-from-obz converter" do
       obz = "/file.obz"
       path = "/file.png"
-      expect(OBF::PDF).to receive(:from_obz).with(obz, path)
+      expect(OBF::PDF).to receive(:from_obz).with(obz, path, {})
       OBF::OBZ.to_pdf(obz, path)
     end
   end

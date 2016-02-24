@@ -7,7 +7,7 @@ module OBF::OBZ
     OBF::External.to_obz(content, dest_path, opts)
   end
   
-  def self.to_pdf(obz, dest_path)
-    OBF::PDF.from_obz(obz, dest_path)
+  def self.to_pdf(obz, dest_path, opts={})
+    OBF::PDF.from_obz(obz, dest_path, opts)
   end
 end

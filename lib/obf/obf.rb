@@ -9,8 +9,8 @@ module OBF::OBF
     OBF::External.to_obf(board, dest_path)
   end
   
-  def self.to_pdf(obf, dest_path)
-    OBF::PDF.from_obf(obf, dest_path)
+  def self.to_pdf(obf, dest_path, opts={})
+    OBF::PDF.from_obf(obf, dest_path, nil, opts)
   end
   
   def self.to_png(obf, dest_path)

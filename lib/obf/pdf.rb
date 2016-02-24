@@ -18,18 +18,18 @@ module OBF::PDF
     @@footer_url = url
   end
   
-  def self.from_obf(obf_json_or_path, dest_path, zipper=nil)
+  def self.from_obf(obf_json_or_path, dest_path, zipper=nil, opts={})
     obj = obf_json_or_path
     if obj.is_a?(String)
       obj = OBF::Utils.parse_obf(File.read(obf_json_or_path))
     else
       obj = OBF::Utils.parse_obf(obf_json_or_path)
     end
-    build_pdf(obj, dest_path, zipper)
+    build_pdf(obj, dest_path, zipper, opts)
     return dest_path
   end
   
-  def self.build_pdf(obj, dest_path, zipper)
+  def self.build_pdf(obj, dest_path, zipper, opts={})
     OBF::Utils.as_progress_percent(0, 1.0) do
       # parse obf, draw as pdf
       pdf = Prawn::Document.new(
@@ -47,7 +47,7 @@ module OBF::PDF
           post = (idx + 1).to_f / obj['boards'].length.to_f
           OBF::Utils.as_progress_percent(pre, post) do
             pdf.start_new_page unless idx == 0
-            build_page(pdf, board, {'zipper' => zipper, 'pages' => obj['pages']})
+            build_page(pdf, board, {'zipper' => zipper, 'pages' => obj['pages'], 'headerless' => !!opts['headerless']})
           end
         end
       else
@@ -64,46 +64,50 @@ module OBF::PDF
       doc_height = 8.5*72 - 72
       default_radius = 3
       text_height = 20
+      header_height = 0
     
       # header
-      pdf.bounding_box([0, doc_height], :width => doc_width, :height => 100) do
-        if options['pages']
-          page_num = options['pages'][obj['id']]
-          pdf.add_dest("page#{page_num}", pdf.dest_fit)
-        end
-        pdf.line_width = 2
-        pdf.font_size 16
+      if !options['headerless']
+        header_height = 100
+        pdf.bounding_box([0, doc_height], :width => doc_width, :height => 100) do
+          if options['pages']
+            page_num = options['pages'][obj['id']]
+            pdf.add_dest("page#{page_num}", pdf.dest_fit)
+          end
+          pdf.line_width = 2
+          pdf.font_size 16
         
-        pdf.fill_color "eeeeee"
-        pdf.stroke_color "888888"
-        pdf.fill_and_stroke_rounded_rectangle [0, 100], 100, 100, default_radius
-        pdf.fill_color "6D81D1"
-        pdf.fill_and_stroke_polygon([5, 50], [35, 85], [35, 70], [95, 70], [95, 30], [35, 30], [35, 15])
-        pdf.fill_color "ffffff"
-        pdf.formatted_text_box [{:text => "Go Back", :anchor => "page1"}], :at => [10, 90], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
-        pdf.fill_color "ffffff"
-        pdf.fill_and_stroke_rounded_rectangle [110, 100], (doc_width - 200 - 20), 100, default_radius
-        pdf.fill_color "DDDB54"
-        pdf.fill_and_stroke do
-          pdf.move_to 160, 50
-          pdf.line_to 190, 70
-          pdf.curve_to [190, 30], :bounds => [[100, 130], [100, -30]]
-          pdf.line_to 160, 50
+          pdf.fill_color "eeeeee"
+          pdf.stroke_color "888888"
+          pdf.fill_and_stroke_rounded_rectangle [0, 100], 100, 100, default_radius
+          pdf.fill_color "6D81D1"
+          pdf.fill_and_stroke_polygon([5, 50], [35, 85], [35, 70], [95, 70], [95, 30], [35, 30], [35, 15])
+          pdf.fill_color "ffffff"
+          pdf.formatted_text_box [{:text => "Go Back", :anchor => "page1"}], :at => [10, 90], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+          pdf.fill_color "ffffff"
+          pdf.fill_and_stroke_rounded_rectangle [110, 100], (doc_width - 200 - 20), 100, default_radius
+          pdf.fill_color "DDDB54"
+          pdf.fill_and_stroke do
+            pdf.move_to 160, 50
+            pdf.line_to 190, 70
+            pdf.curve_to [190, 30], :bounds => [[100, 130], [100, -30]]
+            pdf.line_to 160, 50
+          end
+          pdf.fill_color "444444"
+          pdf.text_box "Say that sentence out loud for me", :at => [210, 90], :width => (doc_width - 200 - 120), :height => 80, :align => :left, :valign => :center, :overflow => :shrink_to_fit
+          pdf.fill_color "eeeeee"
+          pdf.fill_and_stroke_rounded_rectangle [(doc_width - 100), 100], 100, 100, default_radius
+          pdf.fill_color "aaaaaa"
+          pdf.fill_and_stroke_polygon([doc_width - 100 + 5, 50], [doc_width - 100 + 35, 85], [doc_width - 100 + 95, 85], [doc_width - 100 + 95, 15], [doc_width - 100 + 35, 15])
+          pdf.fill_color "ffffff"
+          pdf.text_box "Erase", :at => [(doc_width - 100 + 10), 90], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
         end
-        pdf.fill_color "444444"
-        pdf.text_box "Say that sentence out loud for me", :at => [210, 90], :width => (doc_width - 200 - 120), :height => 80, :align => :left, :valign => :center, :overflow => :shrink_to_fit
-        pdf.fill_color "eeeeee"
-        pdf.fill_and_stroke_rounded_rectangle [(doc_width - 100), 100], 100, 100, default_radius
-        pdf.fill_color "aaaaaa"
-        pdf.fill_and_stroke_polygon([doc_width - 100 + 5, 50], [doc_width - 100 + 35, 85], [doc_width - 100 + 95, 85], [doc_width - 100 + 95, 15], [doc_width - 100 + 35, 15])
-        pdf.fill_color "ffffff"
-        pdf.text_box "Erase", :at => [(doc_width - 100 + 10), 90], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
       end
     
       # board
       pdf.font_size 12
       padding = 10
-      grid_height = doc_height - 100 - text_height - (padding * 2)
+      grid_height = doc_height - header_height - text_height - (padding * 2)
       grid_width = doc_width
       if obj['grid'] && obj['grid']['rows'] > 0 && obj['grid']['columns'] > 0
         button_height = (grid_height - (padding * (obj['grid']['rows'] - 1))) / obj['grid']['rows'].to_f
@@ -169,7 +173,7 @@ module OBF::PDF
     end
   end
   
-  def self.from_obz(obz_path, dest_path)
+  def self.from_obz(obz_path, dest_path, opts={})
     OBF::Utils.load_zip(obz_path) do |zipper|
       manifest = JSON.parse(zipper.read('manifest.json'))
       root = manifest['root']
@@ -207,7 +211,7 @@ module OBF::PDF
         'name' => 'Communication Board Set',
         'boards' => visited_boards,
         'pages' => pages
-      }, dest_path, zipper)
+      }, dest_path, zipper, opts)
     end
     # parse obz, draw as pdf
 

@@ -326,14 +326,14 @@ module OBF::External
         OBF::External.to_obz(board, tmp_path, opts)  
       end
       OBF::Utils.as_progress_percent(0.3, 1.0) do
-        OBF::OBZ.to_pdf(tmp_path, dest_path)
+        OBF::OBZ.to_pdf(tmp_path, dest_path, opts)
       end
     else
       OBF::Utils.as_progress_percent(0, 0.5) do
         self.to_obf(board, tmp_path)  
       end
       OBF::Utils.as_progress_percent(0.5, 1.0) do
-        OBF::OBF.to_pdf(tmp_path, dest_path)
+        OBF::OBF.to_pdf(tmp_path, dest_path, opts)
       end
     end
     File.unlink(tmp_path) if File.exist?(tmp_path)
