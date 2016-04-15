@@ -13,9 +13,9 @@ GEM
     mini_portile2 (2.0.0)
     nokogiri (1.6.7.1)
       mini_portile2 (~> 2.0.0.rc2)
-    pdf-core (0.6.0)
-    prawn (2.0.2)
-      pdf-core (~> 0.6.0)
+    pdf-core (0.6.1)
+    prawn (2.1.0)
+      pdf-core (~> 0.6.1)
       ttfunk (~> 1.4.0)
     rspec (3.4.0)
       rspec-core (~> 3.4.0)
@@ -47,3 +47,6 @@ DEPENDENCIES
   rspec
   rubyzip
   typhoeus
+
+BUNDLED WITH
+   1.11.2

@@ -60,26 +60,26 @@ describe OBF::Utils do
   describe "save_image" do
     it "should extract content type from data uris" do
       path = OBF::Utils.save_image({'data' => "data:text/plain;base64,YWJj"})
-      expect(path).to match(/\.txt\.png$/)
-      expect(File.read(path.sub(/\.png$/, '')).size).to eq(3)
+      expect(path).to match(/\.txt\.jpg$/)
+      expect(File.read(path.sub(/\.jpg$/, '')).size).to eq(3)
     end
     
     it "should have an extension for recognized file types" do
       expect(OBF::Utils).to receive(:'`').and_return(nil)
       path = OBF::Utils.save_image({'data' => "data:text/plain;base64,YWJj", 'content_type' => 'image/png'})
-      expect(path).to match(/\.png\.png$/)
+      expect(path).to match(/\.png\.jpg$/)
 
       expect(OBF::Utils).to receive(:'`').and_return(nil)
       path = OBF::Utils.save_image({'data' => "data:text/plain;base64,YWJj", 'content_type' => 'image/gif'})
-      expect(path).to match(/\.gif\.png$/)
+      expect(path).to match(/\.gif\.jpg$/)
 
       expect(OBF::Utils).to receive(:'`').and_return(nil)
       path = OBF::Utils.save_image({'data' => "data:text/plain;base64,YWJj", 'content_type' => 'image/jpeg'})
-      expect(path).to match(/\.jpeg\.png$/)
+      expect(path).to match(/\.jpeg\.jpg$/)
 
       expect(OBF::Utils).to receive(:'`').and_return(nil)
       path = OBF::Utils.save_image({'data' => "data:text/plain;base64,YWJj", 'content_type' => 'image/hippo'})
-      expect(path).not_to match(/\..+\.png/)
+      expect(path).not_to match(/\..+\.jpg/)
     end
     
     it "should optionally retrieve from the zipper" do
@@ -88,13 +88,13 @@ describe OBF::Utils do
       image = {'path' => '/pic.png'}
       expect(OBF::Utils).to receive(:'`').and_return(nil)
       path = OBF::Utils.save_image(image, zipper)
-      expect(path).to match (/\.png\.png$/)
+      expect(path).to match (/\.png\.jpg$/)
     end
     
     it "should write a file for data uris" do
       path = OBF::Utils.save_image({'data' => "data:text/plain;base64,YWJj"})
-      expect(path).to match(/\.txt\.png$/)
-      expect(File.read(path.sub(/\.png$/, '')).size).to eq(3)
+      expect(path).to match(/\.txt\.jpg$/)
+      expect(File.read(path.sub(/\.jpg$/, '')).size).to eq(3)
     end
     
     it "should write a file for image downloads" do
@@ -104,8 +104,8 @@ describe OBF::Utils do
       })
       expect(OBF::Utils).to receive(:'`').and_return(nil)
       path = OBF::Utils.save_image({'url' => "http://www.example.com/pic.png"})
-      expect(path).to match(/\.png$/)
-      expect(File.read(path.sub(/\.png$/, '')).size).to eq(7)
+      expect(path).to match(/\.jpg$/)
+      expect(File.read(path.sub(/\.jpg$/, '')).size).to eq(7)
     end
     
     it "should call `convert` to resize the image" do
@@ -114,10 +114,10 @@ describe OBF::Utils do
         'content_type' => 'image/png'
       })
       expect(OBF::Utils).to receive(:'`') do |str|
-        expect(str).to match(/^convert .* -resize 300x300 -background white -gravity center -extent 300x300 .*/)
+        expect(str).to match(/^convert .* -resize 200x200 -background white -gravity center -extent 200x200 .*/)
       end
       path = OBF::Utils.save_image({'url' => "http://www.example.com/pic.png"})
-      expect(path).to match(/\.png$/)
+      expect(path).to match(/\.jpg$/)
     end
     
     it "should return nil for unrecognized types" do

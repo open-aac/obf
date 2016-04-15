@@ -162,8 +162,8 @@ module OBF::Utils
       # TODO: maybe convert to jpg instead of png?
       # see https://github.com/prawnpdf/prawn/issues/324
       # in that case, fill the image with a white background, perhaps?
-      `convert #{file.path} -density 1200 -resize 300x300 -background white -gravity center -extent 300x300 #{file.path}.png`
-      "#{file.path}.png"
+      `convert #{file.path} -density 1200 -resize 200x200 -background white -gravity center -extent 200x200 #{file.path}.jpg`
+      "#{file.path}.jpg"
     end
   end
   
