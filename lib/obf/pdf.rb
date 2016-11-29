@@ -47,11 +47,11 @@ module OBF::PDF
           post = (idx + 1).to_f / obj['boards'].length.to_f
           OBF::Utils.as_progress_percent(pre, post) do
             pdf.start_new_page unless idx == 0
-            build_page(pdf, board, {'zipper' => zipper, 'pages' => obj['pages'], 'headerless' => !!opts['headerless']})
+            build_page(pdf, board, {'zipper' => zipper, 'pages' => obj['pages'], 'headerless' => !!opts['headerless'], 'text_on_top' => !!opts['text_on_top']})
           end
         end
       else
-        build_page(pdf, obj, {'headerless' => !!opts['headerless']})
+        build_page(pdf, obj, {'headerless' => !!opts['headerless'], 'text_on_top' => !!opts['text_on_top']})
       end
     
       pdf.render_file(dest_path)
@@ -130,7 +130,8 @@ module OBF::PDF
               pdf.fill_color fill
               pdf.stroke_color border
               pdf.fill_and_stroke_rounded_rectangle [0, button_height], button_width, button_height, default_radius
-              pdf.bounding_box([5, button_height - 5], :width => button_width - 10, :height => button_height - text_height - 5) do
+              vertical = options['text_on_top'] ? 5 + text_height : button_height - 5
+              pdf.bounding_box([5, vertical], :width => button_width - 10, :height => button_height - text_height - 5) do
                 image = (obj['images_hash'] || {})[button['image_id']]
                 if image
                   image_local_path = image && OBF::Utils.save_image(image, options['zipper'])
@@ -143,16 +144,18 @@ module OBF::PDF
               if options['pages'] && button['load_board']
                 page = options['pages'][button['load_board']['id']]
                 if page
+                  vertical = options['text_on_top'] ? 5 + text_height : button_height - 5
                   pdf.fill_color "ffffff"            
                   pdf.stroke_color "eeeeee"            
-                  pdf.fill_and_stroke_rounded_rectangle [button_width - 25, button_height - 5], 20, text_height, 5
+                  pdf.fill_and_stroke_rounded_rectangle [button_width - 25, vertical], 20, text_height, 5
                   pdf.fill_color "000000"
-                  pdf.formatted_text_box [{:text => page, :anchor => "page#{page}"}], :at => [button_width - 25, button_height - 5], :width => 20, :height => text_height, :align => :center, :valign => :center
+                  pdf.formatted_text_box [{:text => page, :anchor => "page#{page}"}], :at => [button_width - 25, vertical], :width => 20, :height => text_height, :align => :center, :valign => :center
                 end
               end
               
               pdf.fill_color "000000"
-              pdf.text_box (button['label'] || button['vocalization']).to_s, :at => [0, text_height], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+              vertical = options['text_on_top'] ? button_height : text_height
+              pdf.text_box (button['label'] || button['vocalization']).to_s, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit
             end
             index = col + (row * obj['grid']['columns'])
             OBF::Utils.update_current_progress(index.to_f / (obj['grid']['rows'] * obj['grid']['columns']).to_f)
