@@ -17,6 +17,7 @@ module OBF::External
     res['url'] = hash['url']
     res['data_url'] = hash['data_url']
     res['description_html'] = hash['description_html']
+    res['protected_content_user_identifier'] = hash['protected_content_user_identifier'] if hash['protected_content_user_identifier']
     res['license'] = OBF::Utils.parse_license(hash['license'])
     hash.each do |key, val|
       if key && key.match(/^ext_/)

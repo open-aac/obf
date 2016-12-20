@@ -178,12 +178,14 @@ describe OBF::External do
         'columns' => 2,
         'order' => [[1,nil],[nil,nil]]
       }
+      b['protected_content_user_identifier'] = 'nan@example.com'
       file = Tempfile.new("stash")
       OBF::External.to_obf(b, file.path)
       json = JSON.parse(file.read)
       file.unlink
       expect(json['id']).to eq(b['id'])
       expect(json['name']).to eq('My Board')
+      expect(json['protected_content_user_identifier']).to eq('nan@example.com')
       expect(json['default_layout']).to eq('landscape')
       expect(json['url']).to eq("http://www.boards.com/example")
       expect(json['grid']).to eq({
