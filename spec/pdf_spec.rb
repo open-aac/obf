@@ -61,7 +61,7 @@ describe OBF::PDF do
     
     it "should render a text_on_top multi-page obz" do
       path2 = OBF::Utils.temp_path(["file", ".pdf"])
-      OBF::PDF.from_obf('./spec/samples/inline_images.obf', path2, {'text_on_top' => true})
+      OBF::PDF.from_obf('./spec/samples/inline_images.obf', path2, nil, {'text_on_top' => true})
       expect(File.exist?(path2)).to eq(true)
       expect(File.size(path2)).to be > 20000
 #      `open #{path2}`
@@ -74,7 +74,7 @@ describe OBF::PDF do
       OBF::PDF.from_obz('./spec/samples/links.obz', path2)
       expect(File.exist?(path2)).to eq(true)
       expect(File.size(path2)).to be > 10
-      
+#      `open #{path2}`
       File.unlink path2
     end
   end

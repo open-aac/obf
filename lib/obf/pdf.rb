@@ -130,7 +130,7 @@ module OBF::PDF
               pdf.fill_color fill
               pdf.stroke_color border
               pdf.fill_and_stroke_rounded_rectangle [0, button_height], button_width, button_height, default_radius
-              vertical = options['text_on_top'] ? 5 + text_height : button_height - 5
+              vertical = options['text_on_top'] ? button_height - text_height : button_height - 5
               pdf.bounding_box([5, vertical], :width => button_width - 10, :height => button_height - text_height - 5) do
                 image = (obj['images_hash'] || {})[button['image_id']]
                 if image
@@ -144,10 +144,10 @@ module OBF::PDF
               if options['pages'] && button['load_board']
                 page = options['pages'][button['load_board']['id']]
                 if page
-                  vertical = options['text_on_top'] ? 5 + text_height : button_height - 5
+                  page_vertical = options['text_on_top'] ? 5 + text_height : button_height - 5
                   pdf.fill_color "ffffff"            
                   pdf.stroke_color "eeeeee"            
-                  pdf.fill_and_stroke_rounded_rectangle [button_width - 25, vertical], 20, text_height, 5
+                  pdf.fill_and_stroke_rounded_rectangle [button_width - 25, page_vertical], 20, text_height, 5
                   pdf.fill_color "000000"
                   pdf.formatted_text_box [{:text => page, :anchor => "page#{page}"}], :at => [button_width - 25, vertical], :width => 20, :height => text_height, :align => :center, :valign => :center
                 end
