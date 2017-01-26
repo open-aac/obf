@@ -35,7 +35,23 @@ describe OBF::Validator do
       expect(res).to be_is_a(Array)
       expect(res.length).to eq(106)
     end
-    
+
+    it "should handle .obz files with errors" do
+      val = OBF::Validator.validate_file('./spec/samples/pageset.obz')
+      expect(val[:valid]).to eq(false)
+      expect(val[:errors]).to eq(15)
+      expect(val[:warnings]).to eq(81)
+      res = val[:results]
+      expect(res).to be_is_a(Array)
+      expect(res.length).to eq(89)
+      expect(val[:sub_results].map{|r| r[:errors] }).to eq([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0])
+      expect(val[:sub_results].map{|r| r[:warnings] }).to eq([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+      errors = val[:results].select{|r| !r['valid'] } 
+      errors += val[:sub_results].map{|sr| sr[:results].select{|r| !r['valid'] } }.flatten
+      expect(errors.length).to eq(15)
+      expect(errors[0]['error']).to eq("button.load_board.path references boards/special::unfinnished.obf which isn't found in the zipped file")
+    end
+
     it "should not error on unrecognized files" do
       val = OBF::Validator.validate_file('./obf.gemspec')
       expect(val[:valid]).to eq(false)

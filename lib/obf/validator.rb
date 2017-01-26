@@ -526,6 +526,16 @@ module OBF
               end
             end
             
+            if button['load_board'] && button['load_board']['path']
+              if !opts['zipper']
+                err "button.load_board.path is set but this isn't a zipped file"
+              else
+                json = JSON.parse(opts['zipper'].read(button['load_board']['path'])) rescue nil
+                if !json || !json['id']
+                  err "button.load_board.path references #{button['load_board']['path']} which isn't found in the zipped file"
+                end
+              end
+            end
           end
         end
       end

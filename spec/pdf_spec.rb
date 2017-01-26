@@ -77,6 +77,7 @@ describe OBF::PDF do
 #      `open #{path2}`
       File.unlink path2
     end
+
   end
 
   describe "from_coughdrop" do
