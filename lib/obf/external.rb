@@ -192,11 +192,12 @@ module OBF::External
   end
   
   def self.from_obf(obf_json_or_path, opts)
+    opts ||= {}
     obj = obf_json_or_path
     if obj.is_a?(String)
-      obj = OBF::Utils.parse_obf(File.read(obf_json_or_path))
+      obj = OBF::Utils.parse_obf(File.read(obf_json_or_path), opts)
     else
-      obj = OBF::Utils.parse_obf(obf_json_or_path)
+      obj = OBF::Utils.parse_obf(obf_json_or_path, opts)
     end
     
     ['images', 'sounds'].each do |type|
@@ -272,8 +273,9 @@ module OBF::External
     OBF::Utils.load_zip(obz_path) do |zipper|
       obf_opts = {'zipper' => zipper, 'images' => {}, 'sounds' => {}, 'boards' => {}}
       manifest = JSON.parse(zipper.read('manifest.json'))
+      obf_opts['manifest'] = manifest
       root = manifest['root']
-      board = OBF::Utils.parse_obf(zipper.read(root))
+      board = OBF::Utils.parse_obf(zipper.read(root), obf_opts)
       board['path'] = root
       unvisited_boards = [board]
       visited_boards = []
@@ -286,9 +288,9 @@ module OBF::External
           if button['load_board']
             all_boards = visited_boards + unvisited_boards
             if all_boards.none?{|b| b['id'] == button['load_board']['id'] || b['path'] == button['load_board']['path'] }
-              path = button['load_board']['path'] || manifest[button['load_board']['id']]
+              path = button['load_board']['path'] || (manifest['paths'] && manifest['paths']['boards'] && manifest['paths']['boards'][button['load_board']['id']])
               if path
-                b = OBF::Utils.parse_obf(zipper.read(path))
+                b = OBF::Utils.parse_obf(zipper.read(path), obf_opts)
                 b['path'] = path
                 button['load_board']['id'] = b['id']
                 unvisited_boards << b
@@ -310,11 +312,12 @@ module OBF::External
     raise "sound ids must be present and unique" unless sounds.map{|i| i['id'] }.uniq.length == sounds.length
     # TODO: try to fix the problem where multiple images or sounds have the same id --
     # this involves reaching in and updating image and sound references on generated boards..
-    return {
+    res = {
       'boards' => boards,
       'images' => images,
       'sounds' => sounds
     }
+    res
   end
   
   def self.to_pdf(board, dest_path, opts)

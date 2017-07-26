@@ -19,7 +19,7 @@ describe OBF::Validator do
     it "should handle .obf files" do
       val = OBF::Validator.validate_file('./spec/samples/aboutme.json')
       expect(val[:valid]).to eq(false)
-      expect(val[:errors]).to eq(36)
+      expect(val[:errors]).to eq(37)
       expect(val[:warnings]).to eq(2)
       res = val[:results]
       expect(res).to be_is_a(Array)
@@ -80,7 +80,7 @@ describe OBF::Validator do
     it "should validate" do
       val = OBF::Validator.validate_obf('./spec/samples/aboutme.json')
       expect(val[:valid]).to eq(false)
-      expect(val[:errors]).to eq(36)
+      expect(val[:errors]).to eq(37)
       expect(val[:warnings]).to eq(2)
       res = val[:results]
       expect(res).to be_is_a(Array)
@@ -109,7 +109,8 @@ describe OBF::Validator do
       check_valid(res, 'sounds')
       record = check_invalid(res, 'buttons[0]')
       expect(record['error']).to eq("button.background_color must be a valid rgb or rgba value if defined (\"#ffff32\" is invalid)")
-      check_valid(res, 'buttons[17]')
+      record = check_invalid(res, 'buttons[17]')
+      expect(record['error']).to eq("button.load_board.path is set but this isn't a zipped file")
     end
     
     it "should error on non-obf file" do

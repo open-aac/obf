@@ -215,10 +215,29 @@ module OBF::Utils
     color
   end
   
-  def self.parse_obf(obj)
+  def self.parse_obf(obj, opts=nil)
+    opts ||= {}
     json = obj
     if obj.is_a?(String)
       json = JSON.parse(obj)
+    end
+    if opts['manifest']
+      (json['buttons'] || []).each do |button|
+        if button['image_id']
+          # find image in list, if it has an id but no path, use the path from the manifest
+          image = (json['images'] || []).detect{|i| i['id'] == button['image_id'] }
+          if image && !image['path'] && !image['data'] && opts['manifest'] && opts['manifest']['images'] && opts['manifest']['images'][button['image_id']]
+            image['path'] = opts['manifest']['images'][button['image_id']]
+          end
+        end
+        if button['sound_id']
+          # find sound in list, if it has an id but no path, use the path from the manifest
+          sound = (json['sounds'] || []).detect{|s| s['id'] == button['sound_id'] }
+          if sound && !sound['path'] && !sound['data'] && opts['manifest'] && opts['manifest']['sounds'] && opts['manifest']['sounds'][button['sound_id']]
+            sound['path'] = opts['manifest']['sounds'][button['sound_id']]
+          end
+        end
+      end
     end
     ['images', 'sounds', 'buttons'].each do |key|
       json["#{key}_hash"] = json[key]
