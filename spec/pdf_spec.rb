@@ -67,6 +67,25 @@ describe OBF::PDF do
 #      `open #{path2}`
       File.unlink path2
     end
+
+    it "should render a text_on_top multi-page obz" do
+      path2 = OBF::Utils.temp_path(["file", ".pdf"])
+      
+      
+      expect(OBF::Utils).to receive(:save_image){|img, zipper, bg|
+        expect(img['data']).to_not eq(nil)
+        if img['id'] == 99
+          expect(bg).to eq('#ffffff')
+        else
+          expect(bg).to eq('#80ff80')
+        end
+      }.exactly(2).times.and_return(nil)
+      OBF::PDF.from_obf('./spec/samples/inline_images.obf', path2, nil, {'transparent_background' => true})
+
+      expect(File.exist?(path2)).to eq(true)
+      expect(File.size(path2)).to be < 10000
+      File.unlink path2
+    end
     
     it "should render a multi-page pre-generated obz" do
       path2 = OBF::Utils.temp_path(["file", ".pdf"])

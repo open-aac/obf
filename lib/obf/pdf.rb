@@ -47,11 +47,11 @@ module OBF::PDF
           post = (idx + 1).to_f / obj['boards'].length.to_f
           OBF::Utils.as_progress_percent(pre, post) do
             pdf.start_new_page unless idx == 0
-            build_page(pdf, board, {'zipper' => zipper, 'pages' => obj['pages'], 'headerless' => !!opts['headerless'], 'text_on_top' => !!opts['text_on_top']})
+            build_page(pdf, board, {'zipper' => zipper, 'pages' => obj['pages'], 'headerless' => !!opts['headerless'], 'text_on_top' => !!opts['text_on_top'], 'transparent_background' => !!opts['transparent_background']})
           end
         end
       else
-        build_page(pdf, obj, {'headerless' => !!opts['headerless'], 'text_on_top' => !!opts['text_on_top']})
+        build_page(pdf, obj, {'headerless' => !!opts['headerless'], 'text_on_top' => !!opts['text_on_top'], 'transparent_background' => !!opts['transparent_background']})
       end
     
       pdf.render_file(dest_path)
@@ -134,7 +134,11 @@ module OBF::PDF
               pdf.bounding_box([5, vertical], :width => button_width - 10, :height => button_height - text_height - 5) do
                 image = (obj['images_hash'] || {})[button['image_id']]
                 if image
-                  image_local_path = image && OBF::Utils.save_image(image, options['zipper'])
+                  bg = 'white'
+                  if options['transparent_background']
+                    bg = "\##{fill}"
+                  end
+                  image_local_path = image && OBF::Utils.save_image(image, options['zipper'], bg)
                   if image_local_path && File.exist?(image_local_path)
                     pdf.image image_local_path, :fit => [button_width - 10, button_height - text_height - 5], :position => :center, :vposition => :center
                     File.unlink image_local_path
@@ -171,7 +175,7 @@ module OBF::PDF
       end
       pdf.fill_color "000000"
       if options['pages']
-        pdf.text_box options['pages'][obj['id']], :at => [doc_width - 100, text_height], :width => 100, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
+        pdf.formatted_text_box [{:text => options['pages'][obj['id']], :anchor => "page1"}], :at => [doc_width - 100, text_height], :width => 100, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
       end
     end
   end

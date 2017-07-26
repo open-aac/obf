@@ -114,9 +114,21 @@ describe OBF::Utils do
         'content_type' => 'image/png'
       })
       expect(OBF::Utils).to receive(:'`') do |str|
-        expect(str).to match(/^convert .* -resize 200x200 -background white -gravity center -extent 200x200 .*/)
+        expect(str).to match(/^convert .* -resize 200x200 -background \"white\" -gravity center -extent 200x200 .*/)
       end
       path = OBF::Utils.save_image({'url' => "http://www.example.com/pic.png"})
+      expect(path).to match(/\.jpg$/)
+    end
+
+    it "should call `convert` to resize the image" do
+      expect(OBF::Utils).to receive(:get_url).with("http://www.example.com/pic.png").and_return({
+        'data' => 'abcdefg',
+        'content_type' => 'image/png'
+      })
+      expect(OBF::Utils).to receive(:'`') do |str|
+        expect(str).to match(/^convert .* -resize 200x200 -background \"rgb(255, 0, 255)\" -gravity center -extent 200x200 .*/)
+      end
+      path = OBF::Utils.save_image({'url' => "http://www.example.com/pic.png"}, 'rgb(255, 0, 255)')
       expect(path).to match(/\.jpg$/)
     end
     
