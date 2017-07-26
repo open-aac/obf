@@ -443,6 +443,36 @@ describe OBF::External do
       expect(boards[0]['id']).to eq(b['id'])
       expect(boards[1]['id']).to eq(b2['id'])
     end
+
+    it "should find image and sound paths from the manifest" do
+      hash = OBF::External.from_obz('./spec/samples/manifest_paths.zip', {})
+      expect(hash['boards'].map{|b| b['id']}).to eq(['lots_of_stuff', 'url_images', 'inline_images', 'path_images_and_sounds'])
+      b = hash['boards'][3]
+      expect(b['id']).to eq('path_images_and_sounds')
+      expect(b['buttons'].length).to eq(2)
+      expect(b['buttons'][0]['image_id']).to eq('9')
+      expect(b['buttons'][0]['sound_id']).to eq('ss2')
+      expect(b['buttons'][1]['image_id']).to eq('11')
+      expect(b['buttons'][1]['sound_id']).to eq(nil)
+      expect(b['images'].length).to eq(2)
+      expect(b['images'][0]['id']).to eq('9')
+      expect(b['images'][0]['data']).to_not eq(nil)
+      expect(b['images'][1]['id']).to eq('11')
+      expect(b['images'][1]['data']).to_not eq(nil)
+      expect(b['sounds'].length).to eq(1)
+      expect(b['sounds'][0]['id']).to eq('ss2')
+      expect(b['sounds'][0]['data']).to_not eq(nil)
+      expect(hash['images'].length).to eq(9)
+      expect(hash['images'].map{|i| i['id'] }).to eq(["i99", "i119", "i429", "i999", "i1199", 99, 119, "9", "11"])
+
+      expect(hash['images'].detect{|i| i['id'] == 'i99' }['data']).to_not eq(nil)
+      expect(hash['images'].detect{|i| i['id'] == '11' }['data']).to_not eq(nil)
+      expect(hash['images'].detect{|i| i['id'] == '9' }['data']).to_not eq(nil)
+      expect(hash['sounds'].length).to eq(3)
+      expect(hash['sounds'].map{|i| i['id'] }).to eq(["sss1", "sss2", "ss2"])
+      expect(hash['sounds'].detect{|i| i['id'] == 'sss1' }['data']).to_not eq(nil)
+      expect(hash['sounds'].detect{|i| i['id'] == 'ss2' }['data']).to_not eq(nil)
+    end
     
     it "should return a list of unique images"
     it "should return a list of unique sounds"

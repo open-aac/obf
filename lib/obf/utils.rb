@@ -226,15 +226,15 @@ module OBF::Utils
         if button['image_id']
           # find image in list, if it has an id but no path, use the path from the manifest
           image = (json['images'] || []).detect{|i| i['id'] == button['image_id'] }
-          if image && !image['path'] && !image['data'] && opts['manifest'] && opts['manifest']['images'] && opts['manifest']['images'][button['image_id']]
-            image['path'] = opts['manifest']['images'][button['image_id']]
+          if image && !image['path'] && !image['data'] && opts['manifest'] && opts['manifest']['paths'] && opts['manifest']['paths']['images'] && opts['manifest']['paths']['images'][button['image_id']]
+            image['path'] = opts['manifest']['paths']['images'][button['image_id']]
           end
         end
         if button['sound_id']
           # find sound in list, if it has an id but no path, use the path from the manifest
           sound = (json['sounds'] || []).detect{|s| s['id'] == button['sound_id'] }
-          if sound && !sound['path'] && !sound['data'] && opts['manifest'] && opts['manifest']['sounds'] && opts['manifest']['sounds'][button['sound_id']]
-            sound['path'] = opts['manifest']['sounds'][button['sound_id']]
+          if sound && !sound['path'] && !sound['data'] && opts['manifest'] && opts['manifest']['paths'] && opts['manifest']['paths']['sounds'] && opts['manifest']['paths']['sounds'][button['sound_id']]
+            sound['path'] = opts['manifest']['paths']['sounds'][button['sound_id']]
           end
         end
       end
