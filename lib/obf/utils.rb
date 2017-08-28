@@ -244,15 +244,17 @@ module OBF::Utils
       json["#{key}_hash"] = json[key]
       if json[key].is_a?(Array)
         hash = {}
-        json[key].each do |item|
+        json[key].compact.each do |item|
           hash[item['id']] = item
         end
         json["#{key}_hash"] = hash
       elsif json["#{key}_hash"]
         array = []
         json["#{key}_hash"].each do |id, item|
-          item['id'] ||= id
-          array << item
+          if item
+            item['id'] ||= id
+            array << item
+          end
         end
         json[key] = array
       end
