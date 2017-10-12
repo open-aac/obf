@@ -39,10 +39,14 @@ module OBF::Utils
     else
       json = JSON.parse(File.read(path)) rescue nil
       if json
-        if json['format'] && json['format'].match(/^open-board-/)
-          return :obf
+        if json.is_a?(Hash)
+          if json['format'] && json['format'].match(/^open-board-/)
+            return :obf
+          end
+          return :json_not_obf
+        else
+          return :json_not_object
         end
-        return :unknown
       end
       
       begin

@@ -44,7 +44,8 @@ module OBF
       elsif type == :obz
         validate_obz(path)
       else
-        {
+        hint = 
+        res = {
           :filename => fn,
           :filesize => filesize,
           :valid => false,
@@ -53,9 +54,25 @@ module OBF
             'type' => 'valid_file',
             'description' => 'valid .obf or .obz file',
             'valid' => false,
-            'error' => 'file must be an .obf JSON file or a .obz zip package'
+            'error' => 'file must be a single .obf JSON file or a .obz zip package'
           }]
         }
+        if type == :json_not_obf
+          res[:results] << {
+            'type' => 'json_parse',
+            'description' => 'valid JSON object',
+            'valid' => false,
+            'error' => 'file contains a JSON object but it does not appear to be an OBF-formatted object'
+          }
+        elsif type == :json_not_object
+          res[:results] << {
+            'type' => 'json_parse',
+            'description' => 'valid JSON object',
+            'valid' => false,
+            'error' => 'file contains valid JSON, but a type other than Object. OBF files do not support arrays, strings, etc. as the root object'
+          }
+        end
+        res
       end
     end
     
