@@ -13,6 +13,23 @@ describe OBF::PDF do
       expect(f2.size).to be > 2400
       f2.unlink
     end
+
+    it "should render a basic obf with international characters" do
+      f = Tempfile.new("stash")
+      hash = OBF::Utils.obf_shell
+      hash['buttons'] << {'id' => '1', 'label' => 'صرخة'}
+      hash['grid']['rows'] = 1
+      hash['grid']['columns'] = 1
+      hash['grid']['order'] = [['1']]
+      f.puts hash.to_json
+      f.rewind
+      f2 = Tempfile.new("stash")
+      OBF::PDF.from_obf(f.path, f2.path)
+      f.unlink
+      f2.rewind
+      expect(f2.size).to be > 2400
+      f2.unlink
+    end
   end
 
   describe "from_obz" do
@@ -83,7 +100,7 @@ describe OBF::PDF do
       OBF::PDF.from_obf('./spec/samples/inline_images.obf', path2, nil, {'transparent_background' => true})
 
       expect(File.exist?(path2)).to eq(true)
-      expect(File.size(path2)).to be < 10000
+      expect(File.size(path2)).to be < 30000
       File.unlink path2
     end
     

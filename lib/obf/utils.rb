@@ -157,17 +157,20 @@ module OBF::Utils
       return nil
     end
     file.close
-    if extension && ['image/jpeg', 'image/jpg', 'image/gif'].include?(image['content_type']) && image['width'] && image['width'] < 1000 && image['width'] == image['height']
+    if extension && ['image/jpeg', 'image/jpg'].include?(image['content_type']) && image['width'] && image['width'] < 1000 && image['width'] == image['height']
       # png files need to be converted to make sure they don't have a transparent bg, or
       # else performance takes a huge hit.
-      `cp #{file.path} #{file.path}.#{extension}`
-      "#{file.path}.#{extension}"
+      `cp #{file.path} #{file.path}#{extension}`
+      "#{file.path}#{extension}"
     else
-      # TODO: maybe convert to jpg instead of png?
-      # see https://github.com/prawnpdf/prawn/issues/324
-      # in that case, fill the image with a white background, perhaps?
       background ||= 'white'
-      `convert #{file.path} -density 1200 -resize 200x200 -background "#{background}" -gravity center -extent 200x200 #{file.path}.jpg`
+      size = 400
+      if image['content_type'] && image['content_type'].match(/svg/) && background != 'white'
+        `convert -background none -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} #{file.path}.png`
+        `convert #{file.path}.png -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} #{file.path}.jpg`
+      else
+        `convert #{file.path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} #{file.path}.jpg`
+      end
       "#{file.path}.jpg"
     end
   end

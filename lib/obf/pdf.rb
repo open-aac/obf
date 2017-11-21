@@ -39,6 +39,8 @@ module OBF::PDF
           :Title => obj['name']
         }
       )
+      font = opts['font'] || File.expand_path('../../TimesNewRoman.ttf', __FILE__)
+      pdf.font(font) if File.exists?(font)
     
     
       if obj['boards']

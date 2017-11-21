@@ -114,7 +114,7 @@ describe OBF::Utils do
         'content_type' => 'image/png'
       })
       expect(OBF::Utils).to receive(:'`') do |str|
-        expect(str).to match(/^convert .* -resize 200x200 -background \"white\" -gravity center -extent 200x200 .*/)
+        expect(str).to match(/^convert .* -density 300 -resize 400x400 -background \"white\" -gravity center -extent 400x400 .*/)
       end
       path = OBF::Utils.save_image({'url' => "http://www.example.com/pic.png"})
       expect(path).to match(/\.jpg$/)
@@ -126,7 +126,7 @@ describe OBF::Utils do
         'content_type' => 'image/png'
       })
       expect(OBF::Utils).to receive(:'`') do |str|
-        expect(str).to match(/^convert .* -resize 200x200 -background \"rgb\(255, 0, 255\)\" -gravity center -extent 200x200 .*/)
+        expect(str).to match(/^convert .* -density 300 -resize 400x400 -background \"rgb\(255, 0, 255\)\" -gravity center -extent 400x400 .*/)
       end
       path = OBF::Utils.save_image({'url' => "http://www.example.com/pic.png"}, nil, 'rgb(255, 0, 255)')
       expect(path).to match(/\.jpg$/)
