@@ -2,6 +2,8 @@ module OBF::PDF
   @@footer_text ||= nil
   @@footer_url ||= nil
   
+  RTL_SCRIPTS = %w(Arabic Hebrew Nko Kharoshthi Phoenician Syriac Thaana Tifinagh)
+  
   def self.footer_text
     @@footer_text
   end
@@ -30,6 +32,8 @@ module OBF::PDF
   end
   
   def self.build_pdf(obj, dest_path, zipper, opts={})
+    character_classes = RTL_SCRIPTS.map{ |script| "\\p{#{script}}" }.join
+    rtl_regex = /[#{character_classes}]/
     OBF::Utils.as_progress_percent(0, 1.0) do
       # parse obf, draw as pdf
       pdf = Prawn::Document.new(
@@ -49,11 +53,23 @@ module OBF::PDF
           post = (idx + 1).to_f / obj['boards'].length.to_f
           OBF::Utils.as_progress_percent(pre, post) do
             pdf.start_new_page unless idx == 0
-            build_page(pdf, board, {'zipper' => zipper, 'pages' => obj['pages'], 'headerless' => !!opts['headerless'], 'text_on_top' => !!opts['text_on_top'], 'transparent_background' => !!opts['transparent_background']})
+            build_page(pdf, board, {
+              'zipper' => zipper, 
+              'pages' => obj['pages'], 
+              'headerless' => !!opts['headerless'], 
+              'text_on_top' => !!opts['text_on_top'], 
+              'transparent_background' => !!opts['transparent_background'],
+              'text_case' => opts['text_case']
+            })
           end
         end
       else
-        build_page(pdf, obj, {'headerless' => !!opts['headerless'], 'text_on_top' => !!opts['text_on_top'], 'transparent_background' => !!opts['transparent_background']})
+        build_page(pdf, obj, {
+          'headerless' => !!opts['headerless'], 
+          'text_on_top' => !!opts['text_on_top'], 
+          'transparent_background' => !!opts['transparent_background'],
+          'text_case' => opts['text_case']
+        })
       end
     
       pdf.render_file(dest_path)
@@ -133,35 +149,64 @@ module OBF::PDF
               pdf.stroke_color border
               pdf.fill_and_stroke_rounded_rectangle [0, button_height], button_width, button_height, default_radius
               vertical = options['text_on_top'] ? button_height - text_height : button_height - 5
-              pdf.bounding_box([5, vertical], :width => button_width - 10, :height => button_height - text_height - 5) do
-                image = (obj['images_hash'] || {})[button['image_id']]
-                if image
-                  bg = 'white'
-                  if options['transparent_background']
-                    bg = "\##{fill}"
-                  end
-                  image_local_path = image && OBF::Utils.save_image(image, options['zipper'], bg)
-                  if image_local_path && File.exist?(image_local_path)
-                    pdf.image image_local_path, :fit => [button_width - 10, button_height - text_height - 5], :position => :center, :vposition => :center
-                    File.unlink image_local_path
+
+              text = (button['label'] || button['vocalization']).to_s
+              direction = text.match(rtl_regex) ? :rtl : :ltr
+              if opts['text_case'] == 'upper'
+                text = text.upcase
+              elsif opts['text_case'] == 'lower'
+                text = text.downcase
+              end
+              pdf.text_box text, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
+              if opts['text_only']
+                # render text
+                pdf.fill_color "000000"
+                text = (button['label'] || button['vocalization']).to_s
+                if opts['text_case'] == 'upper'
+                  text = text.upcase
+                elsif opts['text_case'] == 'lower'
+                  text = text.downcase
+                end
+                pdf.text_box text, :at => [0, 0], :width => button_width, :height => button_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
+              else
+                # render image
+                pdf.bounding_box([5, vertical], :width => button_width - 10, :height => button_height - text_height - 5) do
+                  image = (obj['images_hash'] || {})[button['image_id']]
+                  if image
+                    bg = 'white'
+                    if options['transparent_background']
+                      bg = "\##{fill}"
+                    end
+                    image_local_path = image && OBF::Utils.save_image(image, options['zipper'], bg)
+                    if image_local_path && File.exist?(image_local_path)
+                      pdf.image image_local_path, :fit => [button_width - 10, button_height - text_height - 5], :position => :center, :vposition => :center
+                      File.unlink image_local_path
+                    end
                   end
                 end
-              end
-              if options['pages'] && button['load_board']
-                page = options['pages'][button['load_board']['id']]
-                if page
-                  page_vertical = options['text_on_top'] ? 5 + text_height : button_height - 5
-                  pdf.fill_color "ffffff"            
-                  pdf.stroke_color "eeeeee"            
-                  pdf.fill_and_stroke_rounded_rectangle [button_width - 25, page_vertical], 20, text_height, 5
-                  pdf.fill_color "000000"
-                  pdf.formatted_text_box [{:text => page, :anchor => "page#{page}"}], :at => [button_width - 25, page_vertical], :width => 20, :height => text_height, :align => :center, :valign => :center
+                if options['pages'] && button['load_board']
+                  page = options['pages'][button['load_board']['id']]
+                  if page
+                    page_vertical = options['text_on_top'] ? 5 + text_height : button_height - 5
+                    pdf.fill_color "ffffff"            
+                    pdf.stroke_color "eeeeee"            
+                    pdf.fill_and_stroke_rounded_rectangle [button_width - 25, page_vertical], 20, text_height, 5
+                    pdf.fill_color "000000"
+                    pdf.formatted_text_box [{:text => page, :anchor => "page#{page}"}], :at => [button_width - 25, page_vertical], :width => 20, :height => text_height, :align => :center, :valign => :center
+                  end
                 end
-              end
               
-              pdf.fill_color "000000"
-              vertical = options['text_on_top'] ? button_height : text_height
-              pdf.text_box (button['label'] || button['vocalization']).to_s, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+                # render text
+                pdf.fill_color "000000"
+                vertical = options['text_on_top'] ? button_height : text_height
+                text = (button['label'] || button['vocalization']).to_s
+                if opts['text_case'] == 'upper'
+                  text = text.upcase
+                elsif opts['text_case'] == 'lower'
+                  text = text.downcase
+                end
+                pdf.text_box text, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+              end
             end
             index = col + (row * obj['grid']['columns'])
             OBF::Utils.update_current_progress(index.to_f / (obj['grid']['rows'] * obj['grid']['columns']).to_f)
