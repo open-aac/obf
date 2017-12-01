@@ -32,8 +32,6 @@ module OBF::PDF
   end
   
   def self.build_pdf(obj, dest_path, zipper, opts={})
-    character_classes = RTL_SCRIPTS.map{ |script| "\\p{#{script}}" }.join
-    rtl_regex = /[#{character_classes}]/
     OBF::Utils.as_progress_percent(0, 1.0) do
       # parse obf, draw as pdf
       pdf = Prawn::Document.new(
@@ -74,6 +72,10 @@ module OBF::PDF
     
       pdf.render_file(dest_path)
     end
+  end
+  
+  def self.rtl_regex
+    @res ||= /[#{RTL_SCRIPTS.map{ |script| "\\p{#{script}}" }.join}]/
   end
   
   def self.build_page(pdf, obj, options)
@@ -152,19 +154,19 @@ module OBF::PDF
 
               text = (button['label'] || button['vocalization']).to_s
               direction = text.match(rtl_regex) ? :rtl : :ltr
-              if opts['text_case'] == 'upper'
+              if options['text_case'] == 'upper'
                 text = text.upcase
-              elsif opts['text_case'] == 'lower'
+              elsif options['text_case'] == 'lower'
                 text = text.downcase
               end
               pdf.text_box text, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
-              if opts['text_only']
+              if options['text_only']
                 # render text
                 pdf.fill_color "000000"
                 text = (button['label'] || button['vocalization']).to_s
-                if opts['text_case'] == 'upper'
+                if options['text_case'] == 'upper'
                   text = text.upcase
-                elsif opts['text_case'] == 'lower'
+                elsif options['text_case'] == 'lower'
                   text = text.downcase
                 end
                 pdf.text_box text, :at => [0, 0], :width => button_width, :height => button_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
@@ -187,12 +189,12 @@ module OBF::PDF
                 if options['pages'] && button['load_board']
                   page = options['pages'][button['load_board']['id']]
                   if page
-                    page_vertical = options['text_on_top'] ? 5 + text_height : button_height - 5
+                    page_vertical = options['text_on_top'] ? -2 + text_height : button_height + 2
                     pdf.fill_color "ffffff"            
                     pdf.stroke_color "eeeeee"            
-                    pdf.fill_and_stroke_rounded_rectangle [button_width - 25, page_vertical], 20, text_height, 5
+                    pdf.fill_and_stroke_rounded_rectangle [button_width - 18, page_vertical], 20, text_height, 5
                     pdf.fill_color "000000"
-                    pdf.formatted_text_box [{:text => page, :anchor => "page#{page}"}], :at => [button_width - 25, page_vertical], :width => 20, :height => text_height, :align => :center, :valign => :center
+                    pdf.formatted_text_box [{:text => page, :anchor => "page#{page}"}], :at => [button_width - 18, page_vertical], :width => 20, :height => text_height, :align => :center, :valign => :center
                   end
                 end
               
@@ -200,9 +202,9 @@ module OBF::PDF
                 pdf.fill_color "000000"
                 vertical = options['text_on_top'] ? button_height : text_height
                 text = (button['label'] || button['vocalization']).to_s
-                if opts['text_case'] == 'upper'
+                if options['text_case'] == 'upper'
                   text = text.upcase
-                elsif opts['text_case'] == 'lower'
+                elsif options['text_case'] == 'lower'
                   text = text.downcase
                 end
                 pdf.text_box text, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit
