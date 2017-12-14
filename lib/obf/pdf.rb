@@ -163,16 +163,10 @@ module OBF::PDF
               elsif options['text_case'] == 'lower'
                 text = text.downcase
               end
-              pdf.text_box text, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
+              
               if options['text_only']
                 # render text
                 pdf.fill_color "000000"
-                text = (button['label'] || button['vocalization']).to_s
-                if options['text_case'] == 'upper'
-                  text = text.upcase
-                elsif options['text_case'] == 'lower'
-                  text = text.downcase
-                end
                 pdf.text_box text, :at => [0, 0], :width => button_width, :height => button_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
               else
                 # render image
@@ -205,13 +199,7 @@ module OBF::PDF
                 # render text
                 pdf.fill_color "000000"
                 vertical = options['text_on_top'] ? button_height : text_height
-                text = (button['label'] || button['vocalization']).to_s
-                if options['text_case'] == 'upper'
-                  text = text.upcase
-                elsif options['text_case'] == 'lower'
-                  text = text.downcase
-                end
-                pdf.text_box text, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+                pdf.text_box text, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
               end
             end
             index = col + (row * obj['grid']['columns'])
