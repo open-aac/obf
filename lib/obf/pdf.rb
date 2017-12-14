@@ -41,7 +41,8 @@ module OBF::PDF
           :Title => obj['name']
         }
       )
-      font = opts['font'] || File.expand_path('../../TimesNewRoman.ttf', __FILE__)
+      font = opts['font'] if opts['font'] && File.exists?(opts['font'])
+      font ||= File.expand_path('../../TimesNewRoman.ttf', __FILE__)
       pdf.font(font) if File.exists?(font)
     
     
@@ -55,6 +56,7 @@ module OBF::PDF
               'zipper' => zipper, 
               'pages' => obj['pages'], 
               'headerless' => !!opts['headerless'], 
+              'font' => font,
               'text_on_top' => !!opts['text_on_top'], 
               'transparent_background' => !!opts['transparent_background'],
               'text_case' => opts['text_case']
@@ -64,6 +66,7 @@ module OBF::PDF
       else
         build_page(pdf, obj, {
           'headerless' => !!opts['headerless'], 
+          'font' => font,
           'text_on_top' => !!opts['text_on_top'], 
           'transparent_background' => !!opts['transparent_background'],
           'text_case' => opts['text_case']
@@ -80,6 +83,7 @@ module OBF::PDF
   
   def self.build_page(pdf, obj, options)
     OBF::Utils.as_progress_percent(0, 1.0) do
+      pdf.font(options['font']) if options['font'] && File.exists?(options['font'])
       doc_width = 11*72 - 72
       doc_height = 8.5*72 - 72
       default_radius = 3
