@@ -156,6 +156,11 @@ module OBF::PDF
               pdf.fill_and_stroke_rounded_rectangle [0, button_height], button_width, button_height, default_radius
               vertical = options['text_on_top'] ? button_height - text_height : button_height - 5
 
+              font = options['font']
+              if text.match(/\p{Thai}/)
+                font = File.expand_path('../../THFahKwangBold.ttf', __FILE__)
+              end
+              pdf.font(font) if font && File.exists?(font)
               text = (button['label'] || button['vocalization']).to_s
               direction = text.match(rtl_regex) ? :rtl : :ltr
               if options['text_case'] == 'upper'
@@ -201,6 +206,7 @@ module OBF::PDF
                 vertical = options['text_on_top'] ? button_height : text_height
                 pdf.text_box text, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
               end
+              pdf.font(options['font']) if options['font'] && File.exists?(options['font'])
             end
             index = col + (row * obj['grid']['columns'])
             OBF::Utils.update_current_progress(index.to_f / (obj['grid']['rows'] * obj['grid']['columns']).to_f)
