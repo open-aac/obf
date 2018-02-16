@@ -8,7 +8,8 @@ module OBF::Utils
       content_type = url.split(/;/)[0].split(/:/)[1]
       data = Base64.strict_decode64(url.split(/\,/, 2)[1])
     else
-      res = Typhoeus.get(URI.escape(url))
+      uri = url.match(/\%/) ? url : URI.escape(url)
+      res = Typhoeus.get(uri)
       content_type = res.headers['Content-Type']
       data = res.body
     end
