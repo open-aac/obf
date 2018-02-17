@@ -156,12 +156,12 @@ module OBF::PDF
               pdf.fill_and_stroke_rounded_rectangle [0, button_height], button_width, button_height, default_radius
               vertical = options['text_on_top'] ? button_height - text_height : button_height - 5
 
+              text = (button['label'] || button['vocalization']).to_s
               font = options['font']
               if text.match(/\p{Thai}/)
                 font = File.expand_path('../../THFahKwangBold.ttf', __FILE__)
               end
               pdf.font(font) if font && File.exists?(font)
-              text = (button['label'] || button['vocalization']).to_s
               direction = text.match(rtl_regex) ? :rtl : :ltr
               if options['text_case'] == 'upper'
                 text = text.upcase
