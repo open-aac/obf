@@ -2,7 +2,7 @@ module OBF::PDF
   @@footer_text ||= nil
   @@footer_url ||= nil
   
-  RTL_SCRIPTS = %w(Arabic Hebrew Nko Kharoshthi Phoenician Syriac Thaana Tifinagh)
+  RTL_SCRIPTS = %w(Arabic Hebrew Nko Kharoshthi Phoenician Syriac Thaana Tifinagh Tamil)
   
   def self.footer_text
     @@footer_text
