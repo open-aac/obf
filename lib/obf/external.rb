@@ -39,6 +39,7 @@ module OBF::External
         'label' => original_button['label'],
         'vocalization' => original_button['vocalization'],
         'action' => original_button['action'],
+        'actions' => original_button['actions'],
         'left' => original_button['left'],
         'top' => original_button['top'],
         'width' => original_button['width'],
