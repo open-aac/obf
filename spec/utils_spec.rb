@@ -237,4 +237,33 @@ describe OBF::Utils do
       expect(OBF::Utils.identify_file('./spec/samples/grid.xml')).to eq(:sgrid)
     end
   end
+
+  describe "sanitize_url" do
+    describe "sanitize_url" do
+      it 'should sanitize correctly' do
+        expect(OBF::Utils.sanitize_url("http://127.0.0.1:25/%0D%0AHELO")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://127.0.0.1:25/%0D%0AHELO orange.tw%0D%0AMAIL FROM…")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://127.0.0.1:11211:80/")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://google.com#@evil.com/")).to eq("http://google.com.com/")
+        expect(OBF::Utils.sanitize_url("http://foo@evil.com:80@google.com/")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://orange.tw/sandbox/\xFF\x2E\xFF\x2E/passwd")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://127.0.0.1:6379/\r\nSLAVEOF orange.tw 6379\r\nFF0D U+FF0A")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://127.0.0.1:6379/－＊SLAVEOF＠orange.tw＠6379－＊")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://127.0.0.1\tfoo.google.com")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://127.0.0.1%09foo.google.com")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://127.0.0.1%2509foo.google.com")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://127.0.0.1\r\nSLAVEOF orange.tw 6379\r\n:6379/")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://0/")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://0%09foo.google.com/")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://0:8000/composer/send_email?to=orange@chroot.org&url=http://127.0.0.1:6379/%0D%0ASET")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://0:8000/composer/send_email?to=orange@chroot.org&url=http://127.0.0.1:11211/%0D%0Aset%20githubproductionsearch/queries/code_query%3A857be82362ba02525cef496458ffb09cf30f6256%3Av3%3Acount%200%2060%20150%0D%0A%04%08o%3A%40ActiveSupport%3A%3ADeprecation%3A%3ADeprecatedInstanceVariableProxy%07%3A%0E%40instanceo%3A%08ERB%07%3A%09%40srcI%22%1E%60id%20%7C%20nc%20orange.tw%2012345%60%06%3A%06ET%3A%0C%40linenoi%00%3A%0C%40method%3A%0Bresult%0D%0A%0D%0A")).to eq(nil)
+        expect(OBF::Utils.sanitize_url("http://www.example.com:3000/asdf?a=4#awagw")).to eq("http://www.example.com:3000/asdf?a=4")
+        expect(OBF::Utils.sanitize_url("https://www.example.com:443/asdf")).to eq("https://www.example.com/asdf")
+        expect(OBF::Utils.sanitize_url("http://www.example.com:80/asdf")).to eq("http://www.example.com/asdf")
+        expect(OBF::Utils.sanitize_url("http://www.yahoo.com/?asdf=1")).to eq("http://www.yahoo.com/?asdf=1")
+        expect(OBF::Utils.sanitize_url("http://13.142.13.1512:12345/?asdf=1")).to eq("http://13.142.13.1512:12345/?asdf=1")
+        expect(OBF::Utils.sanitize_url("http://username:password@example.com")).to eq("http://example.com")
+      end
+    end
+  end
 end
