@@ -176,13 +176,15 @@ module OBF::Utils
     else
       background ||= 'white'
       size = 400
-      if image['content_type'] && image['content_type'].match(/svg/) && background != 'white'
+      path = file.path
+      if image['content_type'] && image['content_type'].match(/svg/)
         `convert -background none -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} #{file.path}.png`
-        `convert #{file.path}.png -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} #{file.path}.jpg`
-      else
-        `convert #{file.path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} #{file.path}.jpg`
+#        `rsvg-convert -w #{size} -h #{size} -a #{file.path} > #{file.path}.png`
+        path = "#{file.path}.png"
       end
-      "#{file.path}.jpg"
+      `convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} #{path}.jpg`
+
+      "#{path}.jpg"
     end
   end
   
