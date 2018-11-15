@@ -34,33 +34,55 @@ module OBF::PDF
   def self.build_pdf(obj, dest_path, zipper, opts={})
     OBF::Utils.as_progress_percent(0, 1.0) do
       # parse obf, draw as pdf
-      pdf = Prawn::Document.new(
+      doc_opts = {
         :page_layout => :landscape, 
         :page_size => [8.5*72, 11*72],
         :info => {
           :Title => obj['name']
         }
-      )
+      }
+      pdf = Prawn::Document.new(doc_opts)
       font = opts['font'] if opts['font'] && File.exists?(opts['font'])
       font ||= File.expand_path('../../TimesNewRoman.ttf', __FILE__)
       pdf.font(font) if File.exists?(font)
     
-    
+      multi_render_paths = []
       if obj['boards']
+        multi_render = obj['boards'].length > 20
         obj['boards'].each_with_index do |board, idx|
           pre = idx.to_f / obj['boards'].length.to_f
           post = (idx + 1).to_f / obj['boards'].length.to_f
           OBF::Utils.as_progress_percent(pre, post) do
-            pdf.start_new_page unless idx == 0
-            build_page(pdf, board, {
-              'zipper' => zipper, 
-              'pages' => obj['pages'], 
-              'headerless' => !!opts['headerless'], 
-              'font' => font,
-              'text_on_top' => !!opts['text_on_top'], 
-              'transparent_background' => !!opts['transparent_background'],
-              'text_case' => opts['text_case']
-            })
+            # if more than 10 pages, build each page individually 
+            # and combine them afterwards
+            if multi_render
+              path = OBF::Utils.temp_path("stash-#{idx}.pdf")
+              pdf = Prawn::Document.new(doc_opts)
+              build_page(pdf, board, {
+                'zipper' => zipper, 
+                'pages' => obj['pages'], 
+                'headerless' => !!opts['headerless'], 
+                'font' => font,
+                'links' => false,
+                'text_on_top' => !!opts['text_on_top'], 
+                'transparent_background' => !!opts['transparent_background'],
+                'text_case' => opts['text_case']
+              })
+              pdf.render_file(path)
+              multi_render_paths << path
+            else
+              pdf.start_new_page unless idx == 0
+              build_page(pdf, board, {
+                'zipper' => zipper, 
+                'pages' => obj['pages'], 
+                'headerless' => !!opts['headerless'], 
+                'font' => font,
+                'links' => true,
+                'text_on_top' => !!opts['text_on_top'], 
+                'transparent_background' => !!opts['transparent_background'],
+                'text_case' => opts['text_case']
+              })
+            end
           end
         end
       else
@@ -72,8 +94,12 @@ module OBF::PDF
           'text_case' => opts['text_case']
         })
       end
+      if multi_render_paths.length > 0
+        `gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile=#{dest_path} #{multi_render_paths.join(' ')}`
+      else
+        pdf.render_file(dest_path)
+      end
     
-      pdf.render_file(dest_path)
     end
   end
   
@@ -92,7 +118,7 @@ module OBF::PDF
     
       if options['pages']
         page_num = options['pages'][obj['id']]
-        pdf.add_dest("page#{page_num}", pdf.dest_fit)
+        pdf.add_dest("page#{page_num}", pdf.dest_fit) if options['links']
       end
       # header
       if !options['headerless']
@@ -107,7 +133,9 @@ module OBF::PDF
           pdf.fill_color "6D81D1"
           pdf.fill_and_stroke_polygon([5, 50], [35, 85], [35, 70], [95, 70], [95, 30], [35, 30], [35, 15])
           pdf.fill_color "ffffff"
-          pdf.formatted_text_box [{:text => "Go Back", :anchor => "page1"}], :at => [10, 90], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+          text_options = {:text => "Go Back"}
+          text_options[:anchor] = "page1" if options['links']
+          pdf.formatted_text_box [text_options], :at => [10, 90], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
           pdf.fill_color "ffffff"
           pdf.fill_and_stroke_rounded_rectangle [110, 100], (doc_width - 200 - 20), 100, default_radius
           pdf.fill_color "DDDB54"
@@ -197,7 +225,9 @@ module OBF::PDF
                     pdf.stroke_color "eeeeee"            
                     pdf.fill_and_stroke_rounded_rectangle [button_width - 18, page_vertical], 20, text_height, 5
                     pdf.fill_color "000000"
-                    pdf.formatted_text_box [{:text => page, :anchor => "page#{page}"}], :at => [button_width - 18, page_vertical], :width => 20, :height => text_height, :align => :center, :valign => :center
+                    text_options = {:text => page}
+                    text_options[:anchor] = "page#{page}" if options['links']
+                    pdf.formatted_text_box [text_options], :at => [button_width - 18, page_vertical], :width => 20, :height => text_height, :align => :center, :valign => :center
                   end
                 end
               
@@ -222,7 +252,9 @@ module OBF::PDF
       end
       pdf.fill_color "000000"
       if options['pages']
-        pdf.formatted_text_box [{:text => options['pages'][obj['id']], :anchor => "page1"}], :at => [doc_width - 100, text_height], :width => 100, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
+        text_options = {:text => options['pages'][obj['id']]}
+        text_options[:anchor] = "page1" if options['links']
+        pdf.formatted_text_box [text_options], :at => [doc_width - 100, text_height], :width => 100, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
       end
     end
   end

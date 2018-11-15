@@ -58,7 +58,7 @@ describe OBF::PDF do
       b1 = external_board
       b2 = external_board
       b1['buttons'] = [{
-        'id' => '1', 'load_board' => {'id' => b2['id']}
+        'id' => '1', 'load_board' => {'id' => b2['id']}, 'label' => 'fish'
       }]
       b1['grid'] = {
         'rows' => 1,
@@ -72,7 +72,7 @@ describe OBF::PDF do
       File.unlink path1
       expect(File.exist?(path2)).to eq(true)
       expect(File.size(path2)).to be > 10
-#       `open #{path2}`
+#      `open #{path2}`
       File.unlink path2
     end
     
@@ -101,6 +101,7 @@ describe OBF::PDF do
 
       expect(File.exist?(path2)).to eq(true)
       expect(File.size(path2)).to be < 30000
+#     `open #{path2}`
       File.unlink path2
     end
     
