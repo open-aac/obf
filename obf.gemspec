@@ -12,8 +12,8 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'ruby-debug'
 
-  s.version     = '0.8.9'
-  s.date        = '2018-07-03'
+  s.version     = '0.9.1'
+  s.date        = '2018-11-14'
   s.summary     = "Open Board Format"
   s.extra_rdoc_files = %W(LICENSE)
   s.homepage = %q{http://github.com/CoughDrop/obf}
