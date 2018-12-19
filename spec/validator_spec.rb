@@ -95,9 +95,11 @@ describe OBF::Validator do
       val = OBF::Validator.validate_file('./spec/samples/string.json')
       expect(val[:valid]).to eq(false)
       expect(val[:errors]).to eq(1)
-      expect(val[:results].length).to eq(1)
+      expect(val[:results].length).to eq(2)
       expect(val[:results][0]['valid']).to eq(false)
       expect(val[:results][0]['error']).to eq('file must be a single .obf JSON file or a .obz zip package')
+      expect(val[:results][1]['valid']).to eq(false)
+      expect(val[:results][1]['error']).to eq('file contains valid JSON, but a type other than Object. OBF files do not support arrays, strings, etc. as the root object')
     end
   end
   

@@ -178,13 +178,15 @@ module OBF::Utils
       size = 400
       path = file.path
       if image['content_type'] && image['content_type'].match(/svg/)
-        `convert -background none -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} #{file.path}.png`
+        `convert -background "#{background}" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg`
 #        `rsvg-convert -w #{size} -h #{size} -a #{file.path} > #{file.path}.png`
-        path = "#{file.path}.png"
+        path = "#{file.path}.jpg"
+      else
+        `convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg`
+        path = "#{path}.jpg"
       end
-      `convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} #{path}.jpg`
 
-      "#{path}.jpg"
+      path
     end
   end
   
@@ -333,6 +335,7 @@ module OBF::Utils
         file.close
       end
     end
+    puts "file not found, #{path}" if !File.exist?(path)
     data = `identify -verbose #{path}`
     data.split(/\n/).each do |line|
       pre, post = line.sub(/^\s+/, '').split(/:\s/, 2)
