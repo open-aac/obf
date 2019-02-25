@@ -32,7 +32,7 @@ module OBF::Utils
 
   def self.sanitize_url(url)
     uri = URI.parse(url) rescue nil
-    return nil unless uri
+    return nil unless uri && uri.host
     return nil if (!defined?(Rails) || !Rails.env.development?) && (uri.host.match(/^127/) || uri.host.match(/localhost/) || uri.host.match(/^0/) || uri.host.to_s == uri.host.to_i.to_s)
     port_suffix = ""
     port_suffix = ":#{uri.port}" if (uri.scheme == 'http' && uri.port != 80)
