@@ -10,7 +10,7 @@ module OBF::Utils
     else
       uri = url.match(/\%/) ? url : URI.escape(url)
       uri = self.sanitize_url(uri)
-      res = Typhoeus.get(uri)
+      res = Typhoeus.get(uri, followlocation: true)
       content_type = res.headers['Content-Type']
       data = res.body
     end
