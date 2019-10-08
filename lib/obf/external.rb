@@ -79,7 +79,7 @@ module OBF::External
             end
           end
           hash.keys.each do |key|
-            button['translations'][loc][key] = hash[key] if key.match(/^ext_/)
+            button['translations'][loc][key] = hash[key] if key.to_s.match(/^ext_/)
           end
         end
       end
