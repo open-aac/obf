@@ -212,7 +212,7 @@ module OBF::PDF
                     end
                     image_local_path = image && OBF::Utils.save_image(image, options['zipper'], bg)
                     if image_local_path && File.exist?(image_local_path)
-                      pdf.image image_local_path, :fit => [button_width - 10, button_height - text_height - 5], :position => :center, :vposition => :center
+                      pdf.image(image_local_path, :fit => [button_width - 10, button_height - text_height - 5], :position => :center, :vposition => :center) rescue nil
                       File.unlink image_local_path
                     end
                   end

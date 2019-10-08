@@ -16,6 +16,11 @@ module OBF::External
     res['default_layout'] = hash['default_layout'] || 'landscape'
     res['url'] = hash['url']
     res['data_url'] = hash['data_url']
+
+    res['default_locale'] = hash['default_locale'] if hash['default_locale']
+    res['label_locale'] = hash['label_locale'] if hash['label_locale']
+    res['vocalization_locale'] = hash['vocalization_locale'] if hash['vocalization_locale']
+    
     res['description_html'] = hash['description_html']
     res['protected_content_user_identifier'] = hash['protected_content_user_identifier'] if hash['protected_content_user_identifier']
     res['license'] = OBF::Utils.parse_license(hash['license'])
@@ -55,6 +60,27 @@ module OBF::External
         }
         if path_hash && path_hash['included_boards'] && path_hash['included_boards'][original_button['load_board']['id']]
           button['load_board']['path'] = "board_#{original_button['load_board']['id']}.obf"
+        end
+      end
+      if original_button['translations']
+        original_button['translations'].each do |loc, hash|
+          next unless hash.is_a?(Hash)
+          button['translations'] ||= {}
+          button['translations'][loc] ||= {}
+          button['translations'][loc]['label'] = hash['label'].to_s if hash['label']
+          button['translations'][loc]['vocalization'] = hash['vocalization'].to_s if hash['vocalization']
+          (hash['inflections'] || {}).each do |key, val|
+            if key.match(/^ext_/)
+              button['translations'][loc]['inflections'] ||= {}
+              button['translations'][loc]['inflections'][key] = val
+            else
+              button['translations'][loc]['inflections'] ||= {}
+              button['translations'][loc]['inflections'][key] = val.to_s
+            end
+          end
+          hash.keys.each do |key|
+            button['translations'][loc][key] = hash[key] if key.match(/^ext_/)
+          end
         end
       end
       if original_button['hidden']

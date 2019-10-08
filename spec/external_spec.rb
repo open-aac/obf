@@ -111,8 +111,8 @@ describe OBF::External do
     
     it "should include images and sounds inline" do
       res = OpenStruct.new(:success? => true, :body => "abc", :headers => {'Content-Type' => 'text/plaintext'})
-      expect(Typhoeus).to receive(:get).with("http://example.com/pic.png").and_return(res)
-      expect(Typhoeus).to receive(:get).with("http://example.com/sound.mp3").and_return(res)
+      expect(Typhoeus).to receive(:get).with("http://example.com/pic.png", {:followlocation=>true}).and_return(res)
+      expect(Typhoeus).to receive(:get).with("http://example.com/sound.mp3", {:followlocation=>true}).and_return(res)
       ref = external_board
       b = external_board
       b['name'] = "My Board"
@@ -236,6 +236,112 @@ describe OBF::External do
         'ext_coughdrop_apps' =>  {'web' => {'launch_url' => 'http://www.example.com'}}
       })
     end
+    
+    #   if original_button['translations']
+    #     original_button['translations'].each do |loc, hash|
+    #       next unless hash.is_a?(Hash)
+    #       button['translations'] ||= {}
+    #       button['translations'][loc] ||= {}
+    #       button['translations'][loc]['label'] = hash['label'].to_s if hash['label']
+    #       button['translations'][loc]['vocalization'] = hash['vocalization'].to_s if hash['vocalization']
+    #       (hash['inflections'] || {}).each do |key, val|
+    #         if key.match(/^ext_/)
+    #           button['translations'][loc]['inflections'] ||= {}
+    #           button['translations'][loc]['inflections'][key] = val
+    #         else
+    #           button['translations'][loc]['inflections'] = val.to_s
+    #         end
+    #       end
+    #       hash.keys.each do |key|
+    #         button['translations'][loc][key] = hash[key] if key.match(/^ext_/)
+    #       end
+    #     end
+    #   end
+      it "should include locale settings" do
+        b = external_board
+        b['name'] = "My Board"
+        b['default_locale'] = 'en'
+        b['label_locale'] = 'fr'
+        b['vocalization_locale'] = 'es'
+        b['buttons'] = [
+          {'id' => 1, 'label' => 'chicken', 'ext_coughdrop_apps' => {'web' => {'launch_url' => 'http://www.example.com'}}}
+        ]
+        b['grid'] = {
+          'rows' => 2,
+          'columns' => 2,
+          'order' => [[1,nil],[nil,nil]]
+        }
+        file = Tempfile.new("stash")
+        OBF::External.to_obf(b, file.path)
+        json = JSON.parse(file.read)
+        file.unlink
+        expect(json['id']).to eq(b['id'])
+        expect(json['name']).to eq('My Board')
+        expect(json['default_locale']).to eq('en')
+        expect(json['label_locale']).to eq('fr')
+        expect(json['vocalization_locale']).to eq('es')
+      end
+
+      it "should process translation and inflection settings" do
+        b = external_board
+        b['name'] = "My Board"
+        b['buttons'] = [
+          {'id' => 1, 'label' => 'chicken', 'ext_coughdrop_apps' => {'web' => {'launch_url' => 'http://www.example.com'}}},
+          {'id' => 2, 'label' => 'radish', 'translations' => {'en' => {'ext_other_value' => {'a' => 1, 'b' =>'2'}, 'label' => 'radish', 'inflections' => {'a' => [1,2,3], 'b' => 'c'}}, 'fr' => {'label' => 'etc', 'inflections' => {'ext_something' => ['a', 'b'], 'past' => 'mal', 'future' => 'bien'}}}}
+        ]
+        b['grid'] = {
+          'rows' => 2,
+          'columns' => 2,
+          'order' => [[1,nil],[nil,nil]]
+        }
+        file = Tempfile.new("stash")
+        OBF::External.to_obf(b, file.path)
+        json = JSON.parse(file.read)
+        file.unlink
+        expect(json['id']).to eq(b['id'])
+        expect(json['name']).to eq('My Board')
+        expect(json['default_layout']).to eq('landscape')
+        expect(json['url']).to eq("http://www.boards.com/example")
+        expect(json['grid']).to eq({
+          'rows' => 2,
+          'columns' => 2,
+          'order' => [[1, nil], [nil, nil]]
+        })
+        expect(json['buttons'].length).to eq(2)
+        expect(json['buttons'][0]).to eq({
+          'id' => 1,
+          'label' => 'chicken', 
+          'border_color' => 'rgb(170, 170, 170)',
+          'background_color' => 'rgb(255, 255, 255)',
+          'ext_coughdrop_apps' =>  {'web' => {'launch_url' => 'http://www.example.com'}}
+        })
+        expect(json['buttons'][1]).to eq({
+          'id' => 2,
+          'border_color' => 'rgb(170, 170, 170)',
+          'background_color' => 'rgb(255, 255, 255)',
+          'label' => 'radish',
+          'translations' => {
+            'en' => {
+              'ext_other_value' => {'a' => 1, 'b' => '2'},
+              'label' => 'radish',
+              'inflections' => {
+                'a' => '[1, 2, 3]',
+                'b' => 'c'
+              }
+            },
+            'fr' => {
+              'label' => 'etc',
+              'inflections' => {
+                'ext_something' => ['a', 'b'],
+                'past' => 'mal',
+                'future' => 'bien'
+              }
+            }
+          }
+        })
+      end
+
+
   end
 
   describe "from_obf" do
@@ -363,8 +469,8 @@ describe OBF::External do
 
     it "should include images" do
       res = OpenStruct.new(:success? => true, :body => "abc", :headers => {'Content-Type' => 'text/plaintext'})
-      expect(Typhoeus).to receive(:get).with("http://example.com/pic.png").and_return(res)
-      expect(Typhoeus).to receive(:get).with("http://example.com/sound.mp3").and_return(res)
+      expect(Typhoeus).to receive(:get).with("http://example.com/pic.png", {:followlocation=>true}).and_return(res)
+      expect(Typhoeus).to receive(:get).with("http://example.com/sound.mp3", {:followlocation=>true}).and_return(res)
       ref = external_board
       b = external_board
       b['name'] = "My Board"
