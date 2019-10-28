@@ -3,7 +3,8 @@ module OBF::PDF
   @@footer_url ||= nil
   
   RTL_SCRIPTS = %w(Arabic Hebrew Nko Kharoshthi Phoenician Syriac Thaana Tifinagh Tamil)
-  
+  NEPALI_ALPHABET = "कखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसहक्षत्रज्ञअआइईउऊऋएऐओऔअंअः"
+
   def self.footer_text
     @@footer_text
   end
@@ -42,6 +43,14 @@ module OBF::PDF
         }
       }
       pdf = Prawn::Document.new(doc_opts)
+      pdf.font_families['THFahKwangBold'] = {
+        normal: {font: 'THFahKwangBold', file: File.expand_path('../../THFahKwangBold.ttf', __FILE__)}
+      }
+      pdf.font_families['Nepali'] = {
+        normal: {font: 'Nepali', file: File.expand_path('../../Nepali.ttf', __FILE__)}
+      }
+      pdf.fallback_fonts = ['THFahKwangBold', 'Nepali']
+
       font = opts['font'] if opts['font'] && File.exists?(opts['font'])
       font ||= File.expand_path('../../TimesNewRoman.ttf', __FILE__)
       pdf.font(font) if File.exists?(font)
@@ -188,6 +197,9 @@ module OBF::PDF
               font = options['font']
               if text.match(/\p{Thai}/)
                 font = File.expand_path('../../THFahKwangBold.ttf', __FILE__)
+              # TODO: I think this can be moved to fallback_fonts instead
+              # elsif text.match(Regexp.new("[" + NEPALI_ALPHABET + "]")
+              #   font = File.expand_path('../../Nepali.ttf', __FILE__)
               end
               pdf.font(font) if font && File.exists?(font)
               direction = text.match(rtl_regex) ? :rtl : :ltr
