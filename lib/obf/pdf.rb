@@ -46,10 +46,13 @@ module OBF::PDF
       pdf.font_families['THFahKwangBold'] = {
         normal: {font: 'THFahKwangBold', file: File.expand_path('../../THFahKwangBold.ttf', __FILE__)}
       }
-      pdf.font_families['Nepali'] = {
-        normal: {font: 'Nepali', file: File.expand_path('../../Nepali.ttf', __FILE__)}
+      pdf.font_families['MiedingerBook'] = {
+        normal: {font: 'MiedingerBook', file: File.expand_path('../../MiedingerBook.ttf', __FILE__)}
       }
-      pdf.fallback_fonts = ['THFahKwangBold', 'Nepali']
+      pdf.font_families['TimesNewRoman'] = {
+        normal: {font: 'TimesNewRoman', file: File.expand_path('../../TimesNewRoman.ttf', __FILE__)}
+      }
+      pdf.fallback_fonts = ['TimesNewRoman', 'THFahKwangBold', 'MiedingerBook']
 
       font = opts['font'] if opts['font'] && File.exists?(opts['font'])
       font ||= File.expand_path('../../TimesNewRoman.ttf', __FILE__)
@@ -198,11 +201,9 @@ module OBF::PDF
 
               text = (button['label'] || button['vocalization']).to_s
               font = options['font']
-              if text.match(/\p{Thai}/)
-                font = File.expand_path('../../THFahKwangBold.ttf', __FILE__)
-              # TODO: I think this can be moved to fallback_fonts instead
-              # elsif text.match(Regexp.new("[" + NEPALI_ALPHABET + "]")
-              #   font = File.expand_path('../../Nepali.ttf', __FILE__)
+              # Nepali text isn't working as a fallback for some reason, it says "bad font family"
+              if text.match(Regexp.new("[" + NEPALI_ALPHABET + "]"))
+                font = File.expand_path('../../MiedingerBook.ttf', __FILE__)
               end
               pdf.font(font) if font && File.exists?(font)
               direction = text.match(rtl_regex) ? :rtl : :ltr
@@ -338,3 +339,12 @@ module OBF::PDF
     OBF::PNG.from_pdf(pdf, dest_path)
   end
 end
+
+pdf = Prawn::Document.new
+pdf.font "/Users/whitmer/Workspace/obf/lib/TimesNewRoman.ttf"
+pdf.font_families.update({'MiedingerBook.otf' => {
+  normal: "/Users/whitmer/Workspace/obf/lib/MiedingerBook.ttf"
+}})
+pdf.fallback_fonts = ['MiedingerBook.otf']
+pdf.text_box "भन्नुहोस्"
+pdf.render_file("/Userss/whitmer/Workspace/prawn.pdf")

@@ -30,6 +30,14 @@ describe OBF::PDF do
       expect(f2.size).to be > 2400
       f2.unlink
     end
+
+    it "should render a foreign obf" do
+      path2 = OBF::Utils.temp_path(["file", ".pdf"])
+      f2 = Tempfile.new("stash")
+      OBF::PDF.from_obf("./spec/samples/foreign.obf", path2)
+#      `open #{path2}`
+      File.unlink path2
+    end
   end
 
   describe "from_obz" do
