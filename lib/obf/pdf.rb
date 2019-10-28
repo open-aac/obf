@@ -340,11 +340,11 @@ module OBF::PDF
   end
 end
 
-pdf = Prawn::Document.new
-pdf.font "/Users/whitmer/Workspace/obf/lib/TimesNewRoman.ttf"
-pdf.font_families.update({'MiedingerBook.otf' => {
-  normal: "/Users/whitmer/Workspace/obf/lib/MiedingerBook.ttf"
-}})
-pdf.fallback_fonts = ['MiedingerBook.otf']
-pdf.text_box "भन्नुहोस्"
-pdf.render_file("/Userss/whitmer/Workspace/prawn.pdf")
+# pdf = Prawn::Document.new
+# pdf.font "/Users/whitmer/Workspace/obf/lib/TimesNewRoman.ttf"
+# pdf.font_families.update({'MiedingerBook.otf' => {
+#   normal: "/Users/whitmer/Workspace/obf/lib/MiedingerBook.ttf"
+# }})
+# pdf.fallback_fonts = ['MiedingerBook.otf']
+# pdf.text_box "भन्नुहोस्"
+# pdf.render_file("/Userss/whitmer/Workspace/prawn.pdf")
