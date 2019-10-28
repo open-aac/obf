@@ -75,6 +75,7 @@ module OBF::PDF
                 'links' => false,
                 'text_on_top' => !!opts['text_on_top'], 
                 'transparent_background' => !!opts['transparent_background'],
+                'symbol_background' => opts['symbol_background'],
                 'text_case' => opts['text_case']
               })
               pdf.render_file(path)
@@ -89,6 +90,7 @@ module OBF::PDF
                 'links' => true,
                 'text_on_top' => !!opts['text_on_top'], 
                 'transparent_background' => !!opts['transparent_background'],
+                'symbol_background' => opts['symbol_background'],
                 'text_case' => opts['text_case']
               })
             end
@@ -100,6 +102,7 @@ module OBF::PDF
           'font' => font,
           'text_on_top' => !!opts['text_on_top'], 
           'transparent_background' => !!opts['transparent_background'],
+          'symbol_background' => opts['symbol_background'],
           'text_case' => opts['text_case']
         })
       end
@@ -219,8 +222,10 @@ module OBF::PDF
                   image = (obj['images_hash'] || {})[button['image_id']]
                   if image
                     bg = 'white'
-                    if options['transparent_background']
+                    if options['transparent_background'] || options['symbol_background'] == 'transparent'
                       bg = "\##{fill}"
+                    elsif options['symbol_background'] == 'black'
+                      bg = 'black'
                     end
                     image_local_path = image && OBF::Utils.save_image(image, options['zipper'], bg)
                     if image_local_path && File.exist?(image_local_path)
