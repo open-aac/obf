@@ -14,6 +14,7 @@ module OBF::External
     res['format'] = OBF::OBF::FORMAT
     res['name'] = hash['name']
     res['default_layout'] = hash['default_layout'] || 'landscape'
+    res['background'] = hash['background']
     res['url'] = hash['url']
     res['data_url'] = hash['data_url']
 

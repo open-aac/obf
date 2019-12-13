@@ -43,6 +43,7 @@ module OBF::PDF
         }
       }
       pdf = Prawn::Document.new(doc_opts)
+      # remember: https://www.alphabet-type.com/tools/charset-checker/
       pdf.font_families['THFahKwangBold'] = {
         normal: {font: 'THFahKwangBold', file: File.expand_path('../../THFahKwangBold.ttf', __FILE__)}
       }
@@ -62,10 +63,12 @@ module OBF::PDF
       if obj['boards']
         multi_render = obj['boards'].length > 20
         obj['boards'].each_with_index do |board, idx|
+          started = Time.now.to_i
+          puts "starting pdf of board #{idx} #{board['name'] || board['id']} at #{started}"
           pre = idx.to_f / obj['boards'].length.to_f
           post = (idx + 1).to_f / obj['boards'].length.to_f
           OBF::Utils.as_progress_percent(pre, post) do
-            # if more than 10 pages, build each page individually 
+            # if more than 20 pages, build each page individually 
             # and combine them afterwards
             if multi_render
               path = OBF::Utils.temp_path("stash-#{idx}.pdf")
@@ -98,6 +101,7 @@ module OBF::PDF
               })
             end
           end
+          puts "  finished pdf of board #{idx}/#{obj['boards'].length} #{Time.now.to_i - started}s"
         end
       else
         build_page(pdf, obj, {
@@ -340,11 +344,12 @@ module OBF::PDF
   end
 end
 
+
 # pdf = Prawn::Document.new
-# pdf.font "/Users/whitmer/Workspace/obf/lib/TimesNewRoman.ttf"
-# pdf.font_families.update({'MiedingerBook.otf' => {
-#   normal: "/Users/whitmer/Workspace/obf/lib/MiedingerBook.ttf"
+# pdf.font "lib/TimesNewRoman.ttf"
+# pdf.font_families.update({'MiedingerBook' => {
+#   normal: "lib/MiedingerBook.ttf" # https://fontlibrary.org/en/font/miedinger
 # }})
-# pdf.fallback_fonts = ['MiedingerBook.otf']
+# pdf.fallback_fonts = ['MiedingerBook']
 # pdf.text_box "भन्नुहोस्"
-# pdf.render_file("/Userss/whitmer/Workspace/prawn.pdf")
+# pdf.render_file("out/prawn.pdf")

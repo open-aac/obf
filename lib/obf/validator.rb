@@ -349,6 +349,12 @@ module OBF
           warn "description_html attribute is recommended"
         end
       end
+
+      add_check('background', "background attribute") do
+        if ext['background'] && !ext['background'].is_a?(Hash)
+          err "background attributee must be a hash"
+        end
+      end
     
       add_check('buttons', "buttons attribute") do
         if !ext['buttons']
