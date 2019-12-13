@@ -40,6 +40,8 @@ module OBF::Utils
   end
   
   def self.identify_file(path)
+    # TODO: .c4v files are sqlite databases that can be converted
+    # based on your munger.rb code (text-only)
     name = File.basename(path) rescue nil
     if name.match(/\.obf$/)
       return :obf
@@ -135,6 +137,8 @@ module OBF::Utils
       if !image['content_type']
         image['content_type'] = image['data'].split(/;/)[0].split(/:/)[1]
       end
+    elsif image['raw_data']
+      # already processed
     elsif image['path'] && zipper
       image['raw_data'] = zipper.read(image['path'])
       if !image['content_type']
@@ -142,7 +146,9 @@ module OBF::Utils
         image['content_type'] = types[0] && types[0].to_s
       end
     elsif image['url']
+      puts "  retrieving #{image['url']}"
       url_data = get_url(image['url'])
+      puts "  done!"
       image['raw_data'] = url_data['data']
       image['content_type'] = url_data['content_type']
     elsif image['symbol']
@@ -178,14 +184,17 @@ module OBF::Utils
       size = 400
       path = file.path
       if image['content_type'] && image['content_type'].match(/svg/)
+        puts "    convert -background \"#{background}\" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg"
         `convert -background "#{background}" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg`
 #        `rsvg-convert -w #{size} -h #{size} -a #{file.path} > #{file.path}.png`
         path = "#{file.path}.jpg"
       else
+        puts "    convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg"
         `convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg`
         path = "#{path}.jpg"
       end
 
+      puts "    finished image"
       path
     end
   end

@@ -183,6 +183,29 @@ module OBF::PDF
       if obj['grid'] && obj['grid']['rows'] > 0 && obj['grid']['columns'] > 0
         button_height = (grid_height - (padding * (obj['grid']['rows'] - 1))) / obj['grid']['rows'].to_f
         button_width = (grid_width - (padding * (obj['grid']['columns'] - 1))) / obj['grid']['columns'].to_f
+
+        # Grab all the images per board in parallel
+        puts "  batch-retrieving remote images"
+        hydra = Typhoeus::Hydra.hydra
+        grabs = []
+        obj['buttons'].each do |btn|
+          image = (obj['images_hash'] || {})[btn['image_id']]
+          if image && image['url'] && !image['data'] && !(image['path'] && optionns['zipper'])
+            url = image['url']
+            uri = url.match(/\%/) ? url : URI.escape(url)
+            uri = OBF::Utils.sanitize_url(uri)
+            req = Typhoeus::Request.new(uri, followlocation: true)
+            hydra.queue(req)
+            grabs << {url: url, req: req, image: image}
+          end
+        end
+        hydra.run
+        grabs.each do |grab|
+          grab[:image]['raw_data'] = grab[:req].response.body
+          grab[:image]['content_type'] = grab[:req].response.headers['Content-Type'] if grab[:req].response.headers['Content-Type']
+        end
+        puts "  done with #{grabs.length} remote images!"
+
         obj['grid']['order'].each_with_index do |buttons, row|
           buttons.each_with_index do |button_id, col|
             button = obj['buttons'].detect{|b| b['id'] == button_id }
