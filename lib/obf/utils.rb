@@ -179,25 +179,40 @@ module OBF::Utils
       # png files need to be converted to make sure they don't have a transparent bg, or
       # else performance takes a huge hit.
       `cp #{file.path} #{file.path}#{extension}`
-      "#{file.path}#{extension}"
+      image['local_path'] = "#{file.path}#{extension}"
     else
       background ||= 'white'
       size = 400
       path = file.path
       if image['content_type'] && image['content_type'].match(/svg/)
-        OBF::Utils.log "    convert -background \"#{background}\" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg"
-        `convert -background "#{background}" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg`
+        cmd = "convert -background \"#{background}\" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg"
+        OBF::Utils.log "    #{cmd}"
+        image['local_path'] = "#{file.path}.jpg"
+        if image['threadable']
+          thr = Process.detach(Process.spawn(cmd))
+          return thr
+        else
+          `#{cmd}`
+        end
+#        `convert -background "#{background}" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg`
 #        `rsvg-convert -w #{size} -h #{size} -a #{file.path} > #{file.path}.png`
-        path = "#{file.path}.jpg"
       else
-        OBF::Utils.log "    convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg"
-        `convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg`
-        path = "#{path}.jpg"
+        cmd = "convert #{path} -density 300 -resize #{size}x#{size} -background \"#{background}\" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg"
+        OBF::Utils.log "    #{cmd}"
+        image['local_path'] = "#{path}.jpg"
+        if image['threadable']
+          thr = Process.detach(Process.spawn(cmd))
+          return thr
+        else
+          `#{cmd}`
+        end
+        # `convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg`
       end
 
       OBF::Utils.log "    finished image"
-      path
+      image['local_path']
     end
+    image['local_path']
   end
   
   def self.sound_raw(url)

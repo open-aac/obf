@@ -112,12 +112,19 @@ describe OBF::Utils do
       expect(OBF::Utils).to receive(:get_url).with("http://www.example.com/pic.png").and_return({
         'data' => 'abcdefg',
         'content_type' => 'image/png'
-      })
+      }).exactly(2).times
       expect(OBF::Utils).to receive(:'`') do |str|
         expect(str).to match(/^convert .* -density 300 -resize 400x400 -background \"white\" -gravity center -extent 400x400 .*/)
       end
       path = OBF::Utils.save_image({'url' => "http://www.example.com/pic.png"})
       expect(path).to match(/\.jpg$/)
+
+      expect(Process).to receive(:detach).and_return({a: 1})
+      expect(Process).to receive(:spawn){|str|
+        expect(str).to match(/^convert .* -density 300 -resize 400x400 -background \"white\" -gravity center -extent 400x400 .*/)
+      }.and_return(nil)
+      path = OBF::Utils.save_image({'threadable' => true, 'url' => "http://www.example.com/pic.png"})
+      expect(path).to eq({a: 1})
     end
 
     it "should call `convert` to resize the image" do

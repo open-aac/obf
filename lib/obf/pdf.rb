@@ -196,14 +196,26 @@ module OBF::PDF
             uri = OBF::Utils.sanitize_url(uri)
             req = Typhoeus::Request.new(uri, followlocation: true)
             hydra.queue(req)
-            grabs << {url: url, req: req, image: image}
+            grabs << {url: url, req: req, image: image, fill: btn['background_color'] ? OBF::Utils.fix_color(btn['background_color'], 'hex') : "ffffff"}
           end
         end
         hydra.run
+        threads = []
         grabs.each do |grab|
           grab[:image]['raw_data'] = grab[:req].response.body
+          grab[:image]['threadable'] = true
           grab[:image]['content_type'] = grab[:req].response.headers['Content-Type'] if grab[:req].response.headers['Content-Type']
+          bg = 'white'
+          if options['transparent_background'] || options['symbol_background'] == 'transparent'
+            bg = "\##{grab[:fill]}"
+          elsif options['symbol_background'] == 'black'
+            bg = 'black'
+          end
+          res = OBF::Utils.save_image(grab[:image], options['zipper'], bg)
+          threads << res unless res.is_a?(String)
         end
+        threads.each{|t| t.join }
+        grabs.each{|g| g[:image]['threadable'] = false }
         OBF::Utils.log "  done with #{grabs.length} remote images!"
 
         obj['grid']['order'].each_with_index do |buttons, row|
@@ -255,7 +267,7 @@ module OBF::PDF
                     elsif options['symbol_background'] == 'black'
                       bg = 'black'
                     end
-                    image_local_path = image && OBF::Utils.save_image(image, options['zipper'], bg)
+                    image_local_path = image && (image['local_path'] || OBF::Utils.save_image(image, options['zipper'], bg))
                     if image_local_path && File.exist?(image_local_path)
                       pdf.image(image_local_path, :fit => [button_width - 10, button_height - text_height - 5], :position => :center, :vposition => :center) rescue nil
                       File.unlink image_local_path
