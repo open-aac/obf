@@ -132,6 +132,7 @@ module OBF::Utils
     str
   end
   
+
   def self.save_image(image, zipper=nil, background=nil)
     if image['data']
       if !image['content_type']
@@ -146,9 +147,9 @@ module OBF::Utils
         image['content_type'] = types[0] && types[0].to_s
       end
     elsif image['url']
-      puts "  retrieving #{image['url']}"
+      OBF::Utils.log "  retrieving #{image['url']}"
       url_data = get_url(image['url'])
-      puts "  done!"
+      OBF::Utils.log "  done!"
       image['raw_data'] = url_data['data']
       image['content_type'] = url_data['content_type']
     elsif image['symbol']
@@ -184,17 +185,17 @@ module OBF::Utils
       size = 400
       path = file.path
       if image['content_type'] && image['content_type'].match(/svg/)
-        puts "    convert -background \"#{background}\" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg"
+        OBF::Utils.log "    convert -background \"#{background}\" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg"
         `convert -background "#{background}" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg`
 #        `rsvg-convert -w #{size} -h #{size} -a #{file.path} > #{file.path}.png`
         path = "#{file.path}.jpg"
       else
-        puts "    convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg"
+        OBF::Utils.log "    convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg"
         `convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg`
         path = "#{path}.jpg"
       end
 
-      puts "    finished image"
+      OBF::Utils.log "    finished image"
       path
     end
   end
@@ -344,7 +345,7 @@ module OBF::Utils
         file.close
       end
     end
-    puts "file not found, #{path}" if !File.exist?(path)
+    OBF::Utils.log "file not found, #{path}" if !File.exist?(path)
     data = `identify -verbose #{path}`
     data.split(/\n/).each do |line|
       pre, post = line.sub(/^\s+/, '').split(/:\s/, 2)
@@ -408,6 +409,14 @@ module OBF::Utils
         attrs['height'] ||= more_attrs['height']
       end
       attrs
+    end
+  end
+
+  def self.log(str)
+    if defined?(Rails)
+      Rails.logger.info(str)
+    else
+      puts str
     end
   end
   

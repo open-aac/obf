@@ -64,7 +64,7 @@ module OBF::PDF
         multi_render = obj['boards'].length > 20
         obj['boards'].each_with_index do |board, idx|
           started = Time.now.to_i
-          puts "starting pdf of board #{idx} #{board['name'] || board['id']} at #{started}"
+          OBF::Utils.log "starting pdf of board #{idx} #{board['name'] || board['id']} at #{started}"
           pre = idx.to_f / obj['boards'].length.to_f
           post = (idx + 1).to_f / obj['boards'].length.to_f
           OBF::Utils.as_progress_percent(pre, post) do
@@ -101,7 +101,7 @@ module OBF::PDF
               })
             end
           end
-          puts "  finished pdf of board #{idx}/#{obj['boards'].length} #{Time.now.to_i - started}s"
+          OBF::Utils.log "  finished pdf of board #{idx}/#{obj['boards'].length} #{Time.now.to_i - started}s"
         end
       else
         build_page(pdf, obj, {
@@ -185,7 +185,7 @@ module OBF::PDF
         button_width = (grid_width - (padding * (obj['grid']['columns'] - 1))) / obj['grid']['columns'].to_f
 
         # Grab all the images per board in parallel
-        puts "  batch-retrieving remote images"
+        OBF::Utils.log "  batch-retrieving remote images"
         hydra = Typhoeus::Hydra.hydra
         grabs = []
         obj['buttons'].each do |btn|
@@ -204,7 +204,7 @@ module OBF::PDF
           grab[:image]['raw_data'] = grab[:req].response.body
           grab[:image]['content_type'] = grab[:req].response.headers['Content-Type'] if grab[:req].response.headers['Content-Type']
         end
-        puts "  done with #{grabs.length} remote images!"
+        OBF::Utils.log "  done with #{grabs.length} remote images!"
 
         obj['grid']['order'].each_with_index do |buttons, row|
           buttons.each_with_index do |button_id, col|
