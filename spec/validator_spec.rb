@@ -23,7 +23,7 @@ describe OBF::Validator do
       expect(val[:warnings]).to eq(2)
       res = val[:results]
       expect(res).to be_is_a(Array)
-      expect(res.length).to eq(49)
+      expect(res.length).to eq(50)
     end
     
     it "should handle .obz files" do
@@ -111,7 +111,7 @@ describe OBF::Validator do
       expect(val[:warnings]).to eq(2)
       res = val[:results]
       expect(res).to be_is_a(Array)
-      expect(res.length).to eq(49)
+      expect(res.length).to eq(50)
       
       record = check_valid(res, 'filename')
       expect(record['warnings'].length).to eq(1)
