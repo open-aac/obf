@@ -1,7 +1,8 @@
 require 'cfpropertylist'
 module OBF::Utils
-  def self.get_url(url)
+  def self.get_url(url, hydra_wait=false)
     return nil unless url
+    res = {}
     content_type = nil
     data = nil
     if url.match(/^data:/)
@@ -10,10 +11,36 @@ module OBF::Utils
     else
       uri = url.match(/\%/) ? url : URI.escape(url)
       uri = self.sanitize_url(uri)
-      res = Typhoeus.get(uri, followlocation: true)
-      content_type = res.headers['Content-Type']
-      data = res.body
+      if hydra_wait
+        req = Typhoeus::Request.new(uri, followlocation: true)
+        req.on_complete do |response|
+          res.delete('request')
+          res['content_type'] = response.headers['Content-Type']
+          res['data'] = response.body
+          res['extension'] = extension_for(res['content_type'])
+        end
+        res['request'] = req
+      else
+        req = Typhoeus.get(uri, followlocation: true)
+        content_type = req.headers['Content-Type']
+        data = req.body
+      end
     end
+    res['content_type'] = content_type
+    res['data'] = data
+    res['extension'] = extension_for(content_type)
+    if res['request']
+      if hydra_wait
+        # do nothing
+      else
+        res['request'].run
+        res.delete('request')
+      end
+    end
+    res
+  end
+
+  def self.extension_for(content_type)
     type = MIME::Types[content_type]
     type = type && type[0]
     extension = ""
@@ -22,12 +49,7 @@ module OBF::Utils
     elsif type.respond_to?(:extensions)
       extension = ("." + type.extensions[0]) if type && type.extensions && type.extensions.length > 0
     end
-    res = {
-      'content_type' => content_type,
-      'data' => data,
-      'extension' => extension
-    }
-    res
+    extension
   end
 
   def self.sanitize_url(url)

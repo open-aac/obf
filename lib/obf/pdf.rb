@@ -190,21 +190,25 @@ module OBF::PDF
         grabs = []
         obj['buttons'].each do |btn|
           image = (obj['images_hash'] || {})[btn['image_id']]
-          if image && image['url'] && !image['data'] && !(image['path'] && optionns['zipper'])
+          if image && image['url'] && !image['data'] && !(image['path'] && options['zipper'])
             url = image['url']
-            uri = url.match(/\%/) ? url : URI.escape(url)
-            uri = OBF::Utils.sanitize_url(uri)
-            req = Typhoeus::Request.new(uri, followlocation: true)
-            hydra.queue(req)
-            grabs << {url: url, req: req, image: image, fill: btn['background_color'] ? OBF::Utils.fix_color(btn['background_color'], 'hex') : "ffffff"}
+            res = OBF::Utils.get_url(url, true)
+            if res['request']
+              hydra.queue(res['request'])
+              grabs << {url: url, req: res['request'], image: image, fill: btn['background_color'] ? OBF::Utils.fix_color(btn['background_color'], 'hex') : "ffffff"}
+            end
+          elsif image && image['data'] && !(image['path'] && options['zipper'])
+            grabs << {image: image, fill: btn['background_color'] ? OBF::Utils.fix_color(btn['background_color'], 'hex') : "ffffff"}
           end
         end
         hydra.run
         threads = []
         grabs.each do |grab|
-          grab[:image]['raw_data'] = grab[:req].response.body
+          if grab[:req]
+            grab[:image]['raw_data'] = grab[:req].response.body
+            grab[:image]['content_type'] ||= grab[:req].response.headers['Content-Type'] if grab[:req].response.headers['Content-Type']
+          end
           grab[:image]['threadable'] = true
-          grab[:image]['content_type'] = grab[:req].response.headers['Content-Type'] if grab[:req].response.headers['Content-Type']
           bg = 'white'
           if options['transparent_background'] || options['symbol_background'] == 'transparent'
             bg = "\##{grab[:fill]}"
@@ -212,10 +216,10 @@ module OBF::PDF
             bg = 'black'
           end
           res = OBF::Utils.save_image(grab[:image], options['zipper'], bg)
-          threads << res unless res.is_a?(String)
+          threads << res if res && !res.is_a?(String)
         end
         threads.each{|t| t.join }
-        grabs.each{|g| g[:image]['threadable'] = false }
+        grabs.each{|g| g[:image].delete('threadable') }
         OBF::Utils.log "  done with #{grabs.length} remote images!"
 
         obj['grid']['order'].each_with_index do |buttons, row|

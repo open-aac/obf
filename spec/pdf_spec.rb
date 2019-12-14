@@ -96,7 +96,6 @@ describe OBF::PDF do
     it "should render a text_on_top multi-page obz" do
       path2 = OBF::Utils.temp_path(["file", ".pdf"])
       
-      
       expect(OBF::Utils).to receive(:save_image){|img, zipper, bg|
         expect(img['data']).to_not eq(nil)
         if img['id'] == 99
@@ -104,7 +103,7 @@ describe OBF::PDF do
         else
           expect(bg).to eq('#80ff80')
         end
-      }.exactly(2).times.and_return(nil)
+      }.exactly(4).times.and_return(nil)
       OBF::PDF.from_obf('./spec/samples/inline_images.obf', path2, nil, {'transparent_background' => true})
 
       expect(File.exist?(path2)).to eq(true)

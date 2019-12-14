@@ -1,5 +1,6 @@
 module OBF::External
-  def self.to_obf(hash, dest_path, path_hash=nil)
+  def self.to_obf(hash, dest_path, path_hash=nil, to_include=nil)
+    to_include ||= {images: true, sounds: true}
     if hash['boards']
       old_hash = hash
       hash = old_hash['boards'][0]
@@ -17,6 +18,7 @@ module OBF::External
     res['background'] = hash['background']
     res['url'] = hash['url']
     res['data_url'] = hash['data_url']
+    OBF::Utils.log("compressing board #{res['name'] || res['id']}")
 
     res['default_locale'] = hash['default_locale'] if hash['default_locale']
     res['label_locale'] = hash['label_locale'] if hash['label_locale']
@@ -114,87 +116,114 @@ module OBF::External
       OBF::Utils.update_current_progress(idx.to_f / button_count.to_f)
     end
 
-    images.each do |original_image|
-      image = {
-        'id' => original_image['id'],
-        'width' => original_image['width'],
-        'height' => original_image['height'],
-        'license' => OBF::Utils.parse_license(original_image['license']),
-        'url' => original_image['url'],
-        'data' => original_image['data'],
-        'data_url' => original_image['data_url'],
-        'content_type' => original_image['content_type']
-      }
-      if !path_hash
-        image['data'] ||= OBF::Utils.image_base64(image['url']) if image['url']
-        if image['data'] && (!image['content_type'] || !image['width'] || !image['height'])
-          attrs = OBF::Utils.image_attrs(image['data'])
-          image['content_type'] ||= attrs['content_type']
-          image['width'] ||= attrs['width']
-          image['height'] ||= attrs['height']
-        end
-      else
-        if path_hash['images'] && path_hash['images'][image['id']]
-          image['path'] = path_hash['images'][image['id']]['path']
-          image['content_type'] ||= path_hash['images'][image['id']]['content_type']
-          image['width'] ||= path_hash['images'][image['id']]['width']
-          image['height'] ||= path_hash['images'][image['id']]['height']
-        else
-          image_fetch = OBF::Utils.image_raw(image['data'] || image['url'])
-          if image_fetch
-            if !image['content_type'] || !image['width'] || !image['height']
-              attrs = OBF::Utils.image_attrs(image_fetch['data'])
-              image['content_type'] ||= image_fetch['content_type'] || attrs['content_type']
-              image['width'] ||= attrs['width']
-              image['height'] ||= attrs['height']
-            end
-            zip_path = "images/image_#{image['id']}#{image_fetch['extension']}"
-            path_hash['images'] ||= {}
-            path_hash['images'][image['id']] = {
-              'path' => zip_path,
-              'content_type' => image['content_type'],
-              'width' => image['width'],
-              'height' => image['height']
-            }
-            path_hash['zip'].add(zip_path, image_fetch['data'])
-            image['path'] = zip_path
+    if to_include[:images]
+      hydra = Typhoeus::Hydra.hydra
+      grabs = []
+      images.each do |img|
+        if path_hash && path_hash['images'] && path_hash['images'][img['id']]
+        elsif img['url'] && !img['data']
+          got_url = OBF::Utils.get_url(img['url'], true)
+          if got_url['request']
+            hydra.queue(got_url['request'])
+            grabs << {req: got_url['request'], img: img, res: got_url}
           end
         end
       end
-      res['images'] << trim_empties(image)
+      hydra.run
+      grabs.each do |grab|
+          str = "data:" + grab[:res]['content_type']
+        str += ";base64," + Base64.strict_encode64(grab[:res]['data'])
+        grab[:img]['data'] = str
+        grab[:img]['content_type'] ||= grab[:res]['content_type']
+      end
+
+      images.each do |original_image|
+        image = {
+          'id' => original_image['id'],
+          'width' => original_image['width'],
+          'height' => original_image['height'],
+          'license' => OBF::Utils.parse_license(original_image['license']),
+          'url' => original_image['url'],
+          'data' => original_image['data'],
+          'data_url' => original_image['data_url'],
+          'content_type' => original_image['content_type']
+        }
+        if !path_hash
+          # not zipping
+          image['data'] ||= OBF::Utils.image_base64(image['url']) if image['url']
+          if image['data'] && (!image['content_type'] || !image['width'] || !image['height'])
+            attrs = OBF::Utils.image_attrs(image['data'])
+            image['content_type'] ||= attrs['content_type']
+            image['width'] ||= attrs['width']
+            image['height'] ||= attrs['height']
+          end
+        else
+          # zipping, so needs to be downloaded and potentially re-used
+          if path_hash['images'] && path_hash['images'][image['id']]
+            image['path'] = path_hash['images'][image['id']]['path']
+            image['content_type'] ||= path_hash['images'][image['id']]['content_type']
+            image['width'] ||= path_hash['images'][image['id']]['width']
+            image['height'] ||= path_hash['images'][image['id']]['height']
+          else
+            image_fetch = OBF::Utils.image_raw(image['data'] || image['url'])
+            if image_fetch
+              if !image['content_type'] || !image['width'] || !image['height']
+                attrs = OBF::Utils.image_attrs(image_fetch['data'])
+                image['content_type'] ||= image_fetch['content_type'] || attrs['content_type']
+                image['width'] ||= attrs['width']
+                image['height'] ||= attrs['height']
+              end
+              zip_path = "images/image_#{image['id']}#{image_fetch['extension']}"
+              path_hash['images'] ||= {}
+              path_hash['images'][image['id']] = {
+                'path' => zip_path,
+                'content_type' => image['content_type'],
+                'width' => image['width'],
+                'height' => image['height']
+              }
+              path_hash['zip'].add(zip_path, image_fetch['data'])
+              image['path'] = zip_path
+              image.delete('data')
+            end
+          end
+        end
+        res['images'] << trim_empties(image)
+      end
     end
     
-    sounds.each do |original_sound|
-      sound = {
-        'id' => original_sound['id'],
-        'duration' => original_sound['duration'],
-        'license' => OBF::Utils.parse_license(original_sound['license']),
-        'url' => original_sound['url'],
-        'data' => original_sound['data'],
-        'data_url' => original_sound['data_url'],
-        'content_type' => original_sound['content_type']
-      }
-      if !path_hash
-        sound['data'] = OBF::Utils.sound_base64(sound['url']) if sound['url']
-      else
-        if path_hash['sounds'] && path_hash['sounds'][sound['id']]
-          sound['path'] = path_hash['sounds'][sound['id']]['path']
+    if to_include[:sounds]
+      sounds.each do |original_sound|
+        sound = {
+          'id' => original_sound['id'],
+          'duration' => original_sound['duration'],
+          'license' => OBF::Utils.parse_license(original_sound['license']),
+          'url' => original_sound['url'],
+          'data' => original_sound['data'],
+          'data_url' => original_sound['data_url'],
+          'content_type' => original_sound['content_type']
+        }
+        if !path_hash
+          sound['data'] = OBF::Utils.sound_base64(sound['url']) if sound['url']
         else
-          sound_fetch = OBF::Utils.sound_raw(sound['url'] || sound['data'])
-          if sound_fetch
-            zip_path = "sounds/sound_#{sound['id']}#{sound_fetch['extension']}"
-            path_hash['sounds'] ||= {}
-            path_hash['sounds'][sound['id']] = {
-              'path' => zip_path
-            }
-            path_hash['zip'].add(zip_path, sound_fetch['data'])
-            sound['path'] = zip_path
+          if path_hash['sounds'] && path_hash['sounds'][sound['id']]
+            sound['path'] = path_hash['sounds'][sound['id']]['path']
+          else
+            sound_fetch = OBF::Utils.sound_raw(sound['url'] || sound['data'])
+            if sound_fetch
+              zip_path = "sounds/sound_#{sound['id']}#{sound_fetch['extension']}"
+              path_hash['sounds'] ||= {}
+              path_hash['sounds'][sound['id']] = {
+                'path' => zip_path
+              }
+              path_hash['zip'].add(zip_path, sound_fetch['data'])
+              sound['path'] = zip_path
+            end
           end
+          sound['path'] = zip_path
         end
-        sound['path'] = zip_path
+        
+        res['sounds'] << trim_empties(sound)
       end
-      
-      res['sounds'] << trim_empties(sound)
     end
 
     res['grid'] = OBF::Utils.parse_grid(hash['grid']) # TODO: more robust parsing here
@@ -208,6 +237,7 @@ module OBF::External
     else
       File.open(dest_path, 'w') {|f| f.write(JSON.pretty_generate(res)) }
     end
+    OBF::Utils.log("  done compressing board #{res['name'] || res['id']}")
     return dest_path
   end
   
@@ -274,7 +304,7 @@ module OBF::External
         if b
           b['images'] = content['images'] || []
           b['sounds'] = content['sounds'] || []
-          to_obf(b, nil, paths)
+          to_obf(b, nil, paths, opts[:to_include])
         end
       end
       manifest = {
@@ -355,6 +385,7 @@ module OBF::External
     tmp_path = OBF::Utils.temp_path("stash")
     if opts['packet']
       OBF::Utils.as_progress_percent(0, 0.3) do
+        opts[:to_include] = {images: true}
         OBF::External.to_obz(board, tmp_path, opts)  
       end
       OBF::Utils.as_progress_percent(0.3, 1.0) do
@@ -362,7 +393,7 @@ module OBF::External
       end
     else
       OBF::Utils.as_progress_percent(0, 0.5) do
-        self.to_obf(board, tmp_path)  
+        self.to_obf(board, tmp_path, {images: true})  
       end
       OBF::Utils.as_progress_percent(0.5, 1.0) do
         OBF::OBF.to_pdf(tmp_path, dest_path, opts)

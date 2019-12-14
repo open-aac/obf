@@ -111,7 +111,16 @@ describe OBF::External do
     
     it "should include images and sounds inline" do
       res = OpenStruct.new(:success? => true, :body => "abc", :headers => {'Content-Type' => 'text/plaintext'})
-      expect(Typhoeus).to receive(:get).with("http://example.com/pic.png", {:followlocation=>true}).and_return(res)
+      h = {reqs: []}
+      expect(Typhoeus::Hydra).to receive(:hydra).and_return(h)
+      expect(h).to receive(:queue) do |req| 
+        expect(req.url).to eq("http://example.com/pic.png")
+        req.instance_variable_get('@on_complete').each do |block|
+          block.call(res)
+        end
+        h[:reqs] << req
+      end
+      expect(h).to receive(:run).and_return(true)
       expect(Typhoeus).to receive(:get).with("http://example.com/sound.mp3", {:followlocation=>true}).and_return(res)
       ref = external_board
       b = external_board
@@ -469,7 +478,16 @@ describe OBF::External do
 
     it "should include images" do
       res = OpenStruct.new(:success? => true, :body => "abc", :headers => {'Content-Type' => 'text/plaintext'})
-      expect(Typhoeus).to receive(:get).with("http://example.com/pic.png", {:followlocation=>true}).and_return(res)
+      h = {reqs: []}
+      expect(Typhoeus::Hydra).to receive(:hydra).and_return(h)
+      expect(h).to receive(:queue) do |req| 
+        expect(req.url).to eq("http://example.com/pic.png")
+        req.instance_variable_get('@on_complete').each do |block|
+          block.call(res)
+        end
+        h[:reqs] << req
+      end
+      expect(h).to receive(:run).and_return(true)
       expect(Typhoeus).to receive(:get).with("http://example.com/sound.mp3", {:followlocation=>true}).and_return(res)
       ref = external_board
       b = external_board
