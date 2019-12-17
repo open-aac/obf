@@ -227,7 +227,7 @@ module OBF::External
     end
 
     res['grid'] = OBF::Utils.parse_grid(hash['grid']) # TODO: more robust parsing here
-    if path_hash
+    if path_hash && path_hash['zip']
       zip_path = "board_#{res['id']}.obf"
       path_hash['boards'] ||= {}
       path_hash['boards'][res['id']] = {
@@ -393,7 +393,7 @@ module OBF::External
       end
     else
       OBF::Utils.as_progress_percent(0, 0.5) do
-        self.to_obf(board, tmp_path, {images: true})  
+        self.to_obf(board, tmp_path, nil, {images: true})  
       end
       OBF::Utils.as_progress_percent(0.5, 1.0) do
         OBF::OBF.to_pdf(tmp_path, dest_path, opts)
