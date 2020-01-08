@@ -122,7 +122,7 @@ module OBF::External
       images.each do |img|
         if path_hash && path_hash['images'] && path_hash['images'][img['id']]
         elsif img['url'] && !img['data']
-          got_url = OBF::Utils.get_url(img['url'], true)
+          got_url = OBF::Utils.get_url(img['url'].to_s, true)
           if got_url['request']
             hydra.queue(got_url['request'])
             grabs << {req: got_url['request'], img: img, res: got_url}

@@ -255,10 +255,11 @@ module OBF::PDF
               elsif options['text_case'] == 'lower'
                 text = text.downcase
               end
+              text_color = OBF::Utils.fix_color(fill, 'contrast')
               
               if options['text_only']
                 # render text
-                pdf.fill_color "000000"
+                pdf.fill_color text_color
                 pdf.text_box text, :at => [0, 0], :width => button_width, :height => button_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
               else
                 # render image
@@ -285,7 +286,7 @@ module OBF::PDF
                     pdf.fill_color "ffffff"            
                     pdf.stroke_color "eeeeee"            
                     pdf.fill_and_stroke_rounded_rectangle [button_width - 18, page_vertical], 20, text_height, 5
-                    pdf.fill_color "000000"
+                    pdf.fill_color text_color
                     text_options = {:text => page}
                     text_options[:anchor] = "page#{page}" if options['links']
                     pdf.formatted_text_box [text_options], :at => [button_width - 18, page_vertical], :width => 20, :height => text_height, :align => :center, :valign => :center
@@ -293,7 +294,7 @@ module OBF::PDF
                 end
               
                 # render text
-                pdf.fill_color "000000"
+                pdf.fill_color text_color
                 vertical = options['text_on_top'] ? button_height : text_height
                 pdf.text_box text, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
               end
