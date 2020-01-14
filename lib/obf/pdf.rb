@@ -186,7 +186,7 @@ module OBF::PDF
 
         # Grab all the images per board in parallel
         OBF::Utils.log "  batch-retrieving remote images"
-        hydra = Typhoeus::Hydra.hydra
+        hydra = Typhoeus::Hydra.new(max_concurrency: 10)
         grabs = []
         obj['buttons'].each do |btn|
           image = (obj['images_hash'] || {})[btn['image_id']]
@@ -368,12 +368,12 @@ module OBF::PDF
     return dest_path
   end
   
-  def self.from_external(content, dest_path)
+  def self.from_external(content, dest_path, opts={})
     tmp_path = OBF::Utils.temp_path("stash")
     if content['boards']
-      from_obz(OBF::OBZ.from_external(content, tmp_path), dest_path)
+      from_obz(OBF::OBZ.from_external(content, tmp_path, opts), dest_path, opts)
     else
-      from_obf(OBF::OBF.from_external(content, tmp_path), dest_path)
+      from_obf(OBF::OBF.from_external(content, tmp_path), dest_path, nil, opts)
     end
     File.unlink(tmp_path) if File.exist?(tmp_path)
     dest_path

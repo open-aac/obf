@@ -117,7 +117,7 @@ module OBF::External
     end
 
     if to_include[:images]
-      hydra = Typhoeus::Hydra.hydra
+      hydra = Typhoeus::Hydra.new(max_concurrency: 10)
       grabs = []
       images.each do |img|
         if path_hash && path_hash['images'] && path_hash['images'][img['id']]

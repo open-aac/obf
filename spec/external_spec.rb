@@ -112,7 +112,7 @@ describe OBF::External do
     it "should include images and sounds inline" do
       res = OpenStruct.new(:success? => true, :body => "abc", :headers => {'Content-Type' => 'text/plaintext'})
       h = {reqs: []}
-      expect(Typhoeus::Hydra).to receive(:hydra).and_return(h)
+      expect(Typhoeus::Hydra).to receive(:new).and_return(h)
       expect(h).to receive(:queue) do |req| 
         expect(req.url).to eq("http://example.com/pic.png")
         req.instance_variable_get('@on_complete').each do |block|
@@ -479,7 +479,7 @@ describe OBF::External do
     it "should include images" do
       res = OpenStruct.new(:success? => true, :body => "abc", :headers => {'Content-Type' => 'text/plaintext'})
       h = {reqs: []}
-      expect(Typhoeus::Hydra).to receive(:hydra).and_return(h)
+      expect(Typhoeus::Hydra).to receive(:new).and_return(h)
       expect(h).to receive(:queue) do |req| 
         expect(req.url).to eq("http://example.com/pic.png")
         req.instance_variable_get('@on_complete').each do |block|
