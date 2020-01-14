@@ -154,6 +154,9 @@ module OBF::Utils
     str
   end
   
+  def self.hydra
+    Typhoeus::Hydra.new(max_concurrency: 10)
+  end
 
   def self.save_image(image, zipper=nil, background=nil)
     if image['data']

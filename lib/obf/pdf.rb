@@ -186,7 +186,7 @@ module OBF::PDF
 
         # Grab all the images per board in parallel
         OBF::Utils.log "  batch-retrieving remote images"
-        hydra = Typhoeus::Hydra.new(max_concurrency: 10)
+        hydra = OBF::Utils.hydra
         grabs = []
         obj['buttons'].each do |btn|
           image = (obj['images_hash'] || {})[btn['image_id']]
@@ -204,7 +204,7 @@ module OBF::PDF
         hydra.run
         threads = []
         grabs.each do |grab|
-          if grab[:res]
+          if grab[:res] && grab[:res]['data']
             grab[:image]['raw_data'] = grab[:res]['data']
             grab[:image]['content_type'] ||= grab[:res]['content_type']
             grab[:image]['extension'] ||= grab[:res]['extension']
