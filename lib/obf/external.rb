@@ -131,10 +131,12 @@ module OBF::External
       end
       hydra.run
       grabs.each do |grab|
+        if grab[:res] && grab[:res]['data']
           str = "data:" + grab[:res]['content_type']
-        str += ";base64," + Base64.strict_encode64(grab[:res]['data'])
-        grab[:img]['data'] = str
-        grab[:img]['content_type'] ||= grab[:res]['content_type']
+          str += ";base64," + Base64.strict_encode64(grab[:res]['data'])
+          grab[:img]['data'] = str
+          grab[:img]['content_type'] ||= grab[:res]['content_type']
+        end
       end
 
       images.each do |original_image|

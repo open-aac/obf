@@ -127,13 +127,13 @@ describe OBF::PDF do
   describe "from_coughdrop" do
     it "should convert to obz and then render that" do
       expect(OBF::OBZ).to receive(:from_external).and_return("/file.obz")
-      expect(OBF::PDF).to receive(:from_obz).with("/file.obz", "/file.pdf")
+      expect(OBF::PDF).to receive(:from_obz).with("/file.obz", "/file.pdf", {})
       OBF::PDF.from_external({'boards' => []}, "/file.pdf")
     end
     
     it "should convert to obf if a single record and then render that" do
       expect(OBF::OBF).to receive(:from_external).and_return("/file.obf")
-      expect(OBF::PDF).to receive(:from_obf).with("/file.obf", "/file.pdf")
+      expect(OBF::PDF).to receive(:from_obf).with("/file.obf", "/file.pdf", nil, {})
       OBF::PDF.from_external({}, "/file.pdf")
     end
   end  

@@ -195,7 +195,7 @@ module OBF::PDF
             res = OBF::Utils.get_url(url, true)
             if res['request']
               hydra.queue(res['request'])
-              grabs << {url: url, req: res['request'], image: image, fill: btn['background_color'] ? OBF::Utils.fix_color(btn['background_color'], 'hex') : "ffffff"}
+              grabs << {url: url, res: res, req: res['request'], image: image, fill: btn['background_color'] ? OBF::Utils.fix_color(btn['background_color'], 'hex') : "ffffff"}
             end
           elsif image && image['data'] && !(image['path'] && options['zipper'])
             grabs << {image: image, fill: btn['background_color'] ? OBF::Utils.fix_color(btn['background_color'], 'hex') : "ffffff"}
@@ -204,9 +204,10 @@ module OBF::PDF
         hydra.run
         threads = []
         grabs.each do |grab|
-          if grab[:req]
-            grab[:image]['raw_data'] = grab[:req].response.body
-            grab[:image]['content_type'] ||= grab[:req].response.headers['Content-Type'] if grab[:req].response.headers['Content-Type']
+          if grab[:res]
+            grab[:image]['raw_data'] = grab[:res]['data']
+            grab[:image]['content_type'] ||= grab[:res]['content_type']
+            grab[:image]['extension'] ||= grab[:res]['extension']
           end
           grab[:image]['threadable'] = true
           bg = 'white'
