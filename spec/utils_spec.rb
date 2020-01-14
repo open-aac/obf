@@ -4,6 +4,7 @@ describe OBF::Utils do
   describe "get_url" do
     it "should make a web request and return the content" do
       res = OpenStruct.new({:headers => {'Content-Type' => 'text/plain'}, :body => "abc"})
+      expect(res).to receive(:success?).and_return(true).at_least(1).times
       expect(Typhoeus).to receive(:get).and_return(res)
       expect(OBF::Utils.get_url("http://www.google.com")).to eq({
         'content_type' => 'text/plain',
@@ -16,6 +17,7 @@ describe OBF::Utils do
   describe "image_raw" do
     it "should make a web request and return the content" do
       res = OpenStruct.new({:headers => {'Content-Type' => 'text/plain'}, :body => "abc"})
+      expect(res).to receive(:success?).and_return(true).at_least(1).times
       expect(Typhoeus).to receive(:get).and_return(res)
       expect(OBF::Utils.image_raw("http://www.google.com")).to eq({
         'data' => 'abc',
@@ -52,6 +54,7 @@ describe OBF::Utils do
   describe "image_base64" do
     it "should make a web request and return the content" do
       res = OpenStruct.new({:headers => {'Content-Type' => 'text/text'}, :body => "abc"})
+      expect(res).to receive(:success?).and_return(true).at_least(1).times
       expect(Typhoeus).to receive(:get).and_return(res)
       expect(OBF::Utils.image_base64("http://www.google.com")).to eq('data:text/text;base64,YWJj')
     end
@@ -147,6 +150,7 @@ describe OBF::Utils do
   describe "sound_raw" do
     it "should make a web request and return the content" do
       res = OpenStruct.new({:headers => {'Content-Type' => 'text/plain'}, :body => "abc"})
+      expect(res).to receive(:success?).and_return(true).at_least(1).times
       expect(Typhoeus).to receive(:get).and_return(res)
       expect(OBF::Utils.sound_raw("http://www.google.com")).to eq({
         'data' => 'abc',
@@ -159,6 +163,7 @@ describe OBF::Utils do
   describe "sound_base64" do
     it "should make a web request and return the content" do
       res = OpenStruct.new({:headers => {'Content-Type' => 'text/text'}, :body => "abc"})
+      expect(res).to receive(:success?).and_return(true).at_least(1).times
       expect(Typhoeus).to receive(:get).and_return(res)
       expect(OBF::Utils.sound_base64("http://www.google.com")).to eq('data:text/text;base64,YWJj')
     end

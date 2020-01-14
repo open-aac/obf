@@ -14,21 +14,26 @@ module OBF::Utils
       if hydra_wait
         req = Typhoeus::Request.new(uri, followlocation: true)
         req.on_complete do |response|
-          res.delete('request')
-          res['content_type'] = response.headers['Content-Type']
-          res['data'] = response.body
-          res['extension'] = extension_for(res['content_type'])
+          if response.success?
+            res.delete('request')
+            res['content_type'] = response.headers['Content-Type']
+            res['data'] = response.body
+            res['extension'] = extension_for(res['content_type'])
+          else
+            OBF::Utils.log("  FAILED TO RETRIEVE #{uri.to_s} #{response.code}")
+          end
         end
         res['request'] = req
       else
         req = Typhoeus.get(uri, followlocation: true)
         content_type = req.headers['Content-Type']
-        data = req.body
+        OBF::Utils.log("  FAILED TO RETRIEVE #{uri.to_s} #{req.code}") unless req.success?
+        data = req.body if req.success?
       end
     end
     res['content_type'] = content_type
     res['data'] = data
-    res['extension'] = extension_for(content_type)
+    res['extension'] = extension_for(content_type) if content_type
     if res['request']
       if hydra_wait
         # do nothing
