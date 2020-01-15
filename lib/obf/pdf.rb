@@ -203,6 +203,7 @@ module OBF::PDF
         end
         hydra.run
         threads = []
+        grabs = []
         grabs.each do |grab|
           if grab[:res] && grab[:res]['data']
             grab[:image]['raw_data'] = grab[:res]['data']

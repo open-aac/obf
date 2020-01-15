@@ -160,7 +160,7 @@ module OBF::Utils
   end
   
   def self.hydra
-    Typhoeus::Hydra.new(max_concurrency: 10)
+    Typhoeus::Hydra.new(max_concurrency: 5)
   end
 
   def self.save_image(image, zipper=nil, background=nil)
