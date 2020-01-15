@@ -273,7 +273,8 @@ module OBF::PDF
                     elsif options['symbol_background'] == 'black'
                       bg = 'black'
                     end
-                    image_local_path = image && (image['local_path'] || OBF::Utils.save_image(image, options['zipper'], bg))
+                    image_local_path = image['local_path'] if image && image['local_path'] && File.exist?(image['local_path'])
+                    image_local_path ||= image && OBF::Utils.save_image(image, options['zipper'], bg)
                     if image_local_path && File.exist?(image_local_path)
                       pdf.image(image_local_path, :fit => [button_width - 10, button_height - text_height - 5], :position => :center, :vposition => :center) rescue nil
                       File.unlink image_local_path

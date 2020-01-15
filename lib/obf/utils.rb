@@ -160,7 +160,7 @@ module OBF::Utils
   end
   
   def self.hydra
-    Typhoeus::Hydra.new(max_concurrency: 5)
+    Typhoeus::Hydra.new(max_concurrency: 20)
   end
 
   def self.save_image(image, zipper=nil, background=nil)
@@ -217,10 +217,15 @@ module OBF::Utils
       if image['content_type'] && image['content_type'].match(/svg/)
         cmd = "convert -background \"#{background}\" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg"
         OBF::Utils.log "    #{cmd}"
-        image['local_path'] = "#{file.path}.jpg"
         if image['threadable']
-          thr = Process.detach(Process.spawn(cmd))
-          return {thread: thr, type: 'svg'}
+          thr = Thread.new do
+            pid = Process.spawn(cmd)
+            Process.wait(pid)
+            if $?.exitstatus == 0 && File.exist?("#{file.path}.jpg")
+              image['local_path'] = "#{file.path}.jpg"
+            end
+          end
+          return {thread: thr, image: image, type: 'svg'}
         else
           `#{cmd}`
         end
@@ -229,10 +234,15 @@ module OBF::Utils
       else
         cmd = "convert #{path} -density 300 -resize #{size}x#{size} -background \"#{background}\" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg"
         OBF::Utils.log "    #{cmd}"
-        image['local_path'] = "#{path}.jpg"
         if image['threadable']
-          thr = Process.detach(Process.spawn(cmd))
-          return {thread: thr, type: 'not_svg'}
+          thr = Thread.new do
+            pid = Process.spawn(cmd)
+            Process.wait(pid)
+            if $?.exitstatus == 0 && File.exist?("#{path}.jpg")
+              image['local_path'] = "#{path}.jpg"
+            end
+          end
+          return {thread: thr, image: image, type: 'not_svg'}
         else
           `#{cmd}`
         end
