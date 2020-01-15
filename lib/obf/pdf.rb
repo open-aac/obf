@@ -203,7 +203,6 @@ module OBF::PDF
         end
         hydra.run
         threads = []
-        grabs = []
         grabs.each do |grab|
           if grab[:res] && grab[:res]['data']
             grab[:image]['raw_data'] = grab[:res]['data']
@@ -220,7 +219,7 @@ module OBF::PDF
           res = OBF::Utils.save_image(grab[:image], options['zipper'], bg)
           threads << res if res && !res.is_a?(String)
         end
-        threads.each{|t| t.join }
+        threads.each{|t| t[:thread].join }
         grabs.each{|g| g[:image].delete('threadable') }
         OBF::Utils.log "  done with #{grabs.length} remote images!"
 
