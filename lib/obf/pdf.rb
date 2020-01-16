@@ -206,7 +206,7 @@ module OBF::PDF
         end
         hydra.run
         blocks = []
-        block = {}
+        block = nil
         grabs.each do |grab|
           # prevent too many svg converts from happening at the same time
           block = block || {grabs: []}
@@ -237,7 +237,12 @@ module OBF::PDF
           end
           threads.each{|t| t[:thred].join }
         end
-        grabs.each{|g| g[:image].delete('threadable'); g[:image].delete('local_path') unless File.exist?(g[:image]['local_path']) }
+        grabs.each do |grab|
+          if grab[:image]
+            grab[:image].delete('threadable')
+            grab[:image].delete('local_path') unless grab[:image]['local_path'] && File.exist?(grab[:image]['local_path'])
+          end
+        end
         OBF::Utils.log "  done with #{grabs.length} remote images!"
 
         obj['grid']['order'].each_with_index do |buttons, row|

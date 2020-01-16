@@ -176,7 +176,7 @@ module OBF::Utils
         types = MIME::Types.type_for(image['path'])
         image['content_type'] = types[0] && types[0].to_s
       end
-    elsif image['url'] && !image['threadable']
+    elsif image['url']
       OBF::Utils.log "  retrieving #{image['url']}"
       url_data = get_url(image['url'])
       OBF::Utils.log "  done!"
@@ -240,7 +240,7 @@ module OBF::Utils
           return {thread: thr, image: image, type: 'not_svg', pid: pid}
         else
           `#{cmd}`
-          OBF::Utils.log "    finished image #{File.size(image['local_path'])}"
+          OBF::Utils.log "    finished image #{File.exist?(image['local_path']) && File.size(image['local_path'])}"
         end
         # `convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg`
       end

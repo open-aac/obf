@@ -127,7 +127,7 @@ describe OBF::Utils do
         expect(str).to match(/^convert .* -density 300 -resize 400x400 -background \"white\" -gravity center -extent 400x400 .*/)
       }.and_return(nil)
       path = OBF::Utils.save_image({'threadable' => true, 'url' => "http://www.example.com/pic.png"})
-      expect(path).to eq({a: 1})
+      expect(path[:thread]).to eq({a: 1})
     end
 
     it "should call `convert` to resize the image" do
