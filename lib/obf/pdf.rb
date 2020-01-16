@@ -126,6 +126,7 @@ module OBF::PDF
     @res ||= /[#{RTL_SCRIPTS.map{ |script| "\\p{#{script}}" }.join}]/
   end
   
+  # b.generate_download('1_2', 'pdf', {'include' => 'all', 'headerless' => true, 'symbol_background' => 'transparent'})
   def self.build_page(pdf, obj, options)
     OBF::Utils.as_progress_percent(0, 1.0) do
       pdf.font(options['font']) if options['font'] && File.exists?(options['font'])
@@ -191,36 +192,52 @@ module OBF::PDF
         obj['buttons'].each do |btn|
           image = (obj['images_hash'] || {})[btn['image_id']]
           if image && image['url'] && !image['data'] && !(image['path'] && options['zipper'])
+            # download the raw data from the remote URL
             url = image['url']
             res = OBF::Utils.get_url(url, true)
             if res['request']
               hydra.queue(res['request'])
               grabs << {url: url, res: res, req: res['request'], image: image, fill: btn['background_color'] ? OBF::Utils.fix_color(btn['background_color'], 'hex') : "ffffff"}
             end
-          elsif image && image['data'] && !(image['path'] && options['zipper'])
+          elsif image && (image['data'] || (image['path'] && options['zipper']))
+            # process the data-uri or zipped image
             grabs << {image: image, fill: btn['background_color'] ? OBF::Utils.fix_color(btn['background_color'], 'hex') : "ffffff"}
           end
         end
         hydra.run
-        threads = []
+        blocks = []
+        block = {}
         grabs.each do |grab|
-          if grab[:res] && grab[:res]['data']
-            grab[:image]['raw_data'] = grab[:res]['data']
-            grab[:image]['content_type'] ||= grab[:res]['content_type']
-            grab[:image]['extension'] ||= grab[:res]['extension']
+          # prevent too many svg converts from happening at the same time
+          block = block || {grabs: []}
+          block[:grabs] << grab
+          block[:has_svg] = true if grab[:type] == 'svg'
+          if block[:grabs].length > 5 && block[:has_svg]
+            blocks << block
+            block = nil
           end
-          grab[:image]['threadable'] = true
-          bg = 'white'
-          if options['transparent_background'] || options['symbol_background'] == 'transparent'
-            bg = "\##{grab[:fill]}"
-          elsif options['symbol_background'] == 'black'
-            bg = 'black'
-          end
-          res = OBF::Utils.save_image(grab[:image], options['zipper'], bg)
-          threads << res if res && !res.is_a?(String)
         end
-        threads.each{|t| t[:thread].join }
-        grabs.each{|g| g[:image].delete('threadable') }
+        blocks.each do |block|
+          threads = []
+          block[:grabs].each do |grab|
+            if grab[:res] && grab[:res]['data']
+              grab[:image]['raw_data'] = grab[:res]['data']
+              grab[:image]['content_type'] ||= grab[:res]['content_type']
+              grab[:image]['extension'] ||= grab[:res]['extension']
+            end
+            grab[:image]['threadable'] = true
+            bg = 'white'
+            if options['transparent_background'] || options['symbol_background'] == 'transparent'
+              bg = "\##{grab[:fill]}"
+            elsif options['symbol_background'] == 'black'
+              bg = 'black'
+            end
+            res = OBF::Utils.save_image(grab[:image], options['zipper'], bg)
+            threads << res if res && !res.is_a?(String)
+          end
+          threads.each{|t| t[:thred].join }
+        end
+        grabs.each{|g| g[:image].delete('threadable'); g[:image].delete('local_path') unless File.exist?(g[:image]['local_path']) }
         OBF::Utils.log "  done with #{grabs.length} remote images!"
 
         obj['grid']['order'].each_with_index do |buttons, row|
@@ -273,11 +290,14 @@ module OBF::PDF
                     elsif options['symbol_background'] == 'black'
                       bg = 'black'
                     end
+                    image['threadable'] = false
                     image_local_path = image['local_path'] if image && image['local_path'] && File.exist?(image['local_path'])
                     image_local_path ||= image && OBF::Utils.save_image(image, options['zipper'], bg)
                     if image_local_path && File.exist?(image_local_path)
                       pdf.image(image_local_path, :fit => [button_width - 10, button_height - text_height - 5], :position => :center, :vposition => :center) rescue nil
                       File.unlink image_local_path
+                    else
+                      OBF::Utils.log("  missing image #{image['id']} #{image_local_path}")
                     end
                   end
                 end

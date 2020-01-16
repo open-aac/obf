@@ -130,6 +130,7 @@ module OBF::External
         end
       end
       hydra.run
+      
       grabs.each do |grab|
         if grab[:res] && grab[:res]['data']
           str = "data:" + grab[:res]['content_type']

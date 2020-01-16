@@ -160,7 +160,7 @@ module OBF::Utils
   end
   
   def self.hydra
-    Typhoeus::Hydra.new(max_concurrency: 20)
+    Typhoeus::Hydra.new(max_concurrency: 10)
   end
 
   def self.save_image(image, zipper=nil, background=nil)
@@ -217,39 +217,34 @@ module OBF::Utils
       if image['content_type'] && image['content_type'].match(/svg/)
         cmd = "convert -background \"#{background}\" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg"
         OBF::Utils.log "    #{cmd}"
+        image['local_path'] = "#{file.path}.jpg"
         if image['threadable']
-          thr = Thread.new do
-            pid = Process.spawn(cmd)
-            Process.wait(pid)
-            if $?.exitstatus == 0 && File.exist?("#{file.path}.jpg")
-              image['local_path'] = "#{file.path}.jpg"
-            end
-          end
-          return {thread: thr, image: image, type: 'svg'}
+          pid = Process.spawn(cmd)
+          thr = Process.detach(pid)
+          OBF::Utils.log "    scheduled image"
+          return {thread: thr, image: image, type: 'svg', pid: pid}
         else
           `#{cmd}`
+          OBF::Utils.log "    finished image #{File.size(image['local_path'])}"
         end
 #        `convert -background "#{background}" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg`
 #        `rsvg-convert -w #{size} -h #{size} -a #{file.path} > #{file.path}.png`
       else
         cmd = "convert #{path} -density 300 -resize #{size}x#{size} -background \"#{background}\" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg"
         OBF::Utils.log "    #{cmd}"
+        image['local_path'] = "#{path}.jpg"
         if image['threadable']
-          thr = Thread.new do
-            pid = Process.spawn(cmd)
-            Process.wait(pid)
-            if $?.exitstatus == 0 && File.exist?("#{path}.jpg")
-              image['local_path'] = "#{path}.jpg"
-            end
-          end
-          return {thread: thr, image: image, type: 'not_svg'}
+          pid = Process.spawn(cmd)
+          thr = Process.detach(pid)
+          OBF::Utils.log "    scheduled image"
+          return {thread: thr, image: image, type: 'not_svg', pid: pid}
         else
           `#{cmd}`
+          OBF::Utils.log "    finished image #{File.size(image['local_path'])}"
         end
         # `convert #{path} -density 300 -resize #{size}x#{size} -background "#{background}" -gravity center -extent #{size}x#{size} -flatten #{path}.jpg`
       end
 
-      OBF::Utils.log "    finished image"
       image['local_path']
     end
     image['local_path']
