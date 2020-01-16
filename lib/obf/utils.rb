@@ -225,7 +225,7 @@ module OBF::Utils
           return {thread: thr, image: image, type: 'svg', pid: pid}
         else
           `#{cmd}`
-          OBF::Utils.log "    finished image #{File.size(image['local_path'])}"
+          OBF::Utils.log "    finished image #{File.exist?(image['local_path']) && File.size(image['local_path'])}"
         end
 #        `convert -background "#{background}" -density 300 -resize #{size}x#{size} -gravity center -extent #{size}x#{size} #{file.path} -flatten #{file.path}.jpg`
 #        `rsvg-convert -w #{size} -h #{size} -a #{file.path} > #{file.path}.png`

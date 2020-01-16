@@ -211,14 +211,18 @@ module OBF::PDF
           # prevent too many svg converts from happening at the same time
           block = block || {grabs: []}
           block[:grabs] << grab
-          block[:has_svg] = true if grab[:type] == 'svg'
-          if block[:grabs].length > 5 && block[:has_svg]
+          grab[:svg] = true if grab[:image] && grab[:image]['content_type'] && grab[:image]['content_type'].match(/svg/)
+          grab[:svg] = true if grab[:res] && grab[:res]['content_type'] && grab[:res]['content_type'].match(/svg/)
+          if block[:grabs].length > 20 || block[:grabs].select{|g| g[:svg] }.length > 3
             blocks << block
             block = nil
           end
         end
-        blocks.each do |block|
+        blocks << block if block
+        OBF::Utils.log("  final block #{block.to_json}")
+        blocks.each_with_index do |block, idx|
           threads = []
+          OBF::Utils.log("   block #{idx}")
           block[:grabs].each do |grab|
             if grab[:res] && grab[:res]['data']
               grab[:image]['raw_data'] = grab[:res]['data']
@@ -232,10 +236,11 @@ module OBF::PDF
             elsif options['symbol_background'] == 'black'
               bg = 'black'
             end
+            OBF::Utils.log("    img")
             res = OBF::Utils.save_image(grab[:image], options['zipper'], bg)
             threads << res if res && !res.is_a?(String)
           end
-          threads.each{|t| t[:thred].join }
+          threads.each{|t| t[:thread].join }
         end
         grabs.each do |grab|
           if grab[:image]
