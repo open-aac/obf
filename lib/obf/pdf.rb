@@ -88,37 +88,28 @@ module OBF::PDF
           OBF::Utils.as_progress_percent(pre, post) do
             # if more than 20 pages, build each page individually 
             # and combine them afterwards
+
             if multi_render
               path = OBF::Utils.temp_path("stash-#{idx}.pdf")
               pdf = Prawn::Document.new(doc_opts)
-              build_page(pdf, board, {
-                'zipper' => zipper, 
-                'pages' => obj['pages'],
-                'backlinks' => obj['backlinks'][board['id']] || [], 
-                'headerless' => !!opts['headerless'], 
-                'font' => font,
-                'links' => false,
-                'text_on_top' => !!opts['text_on_top'], 
-                'transparent_background' => !!opts['transparent_background'],
-                'symbol_background' => opts['symbol_background'],
-                'text_case' => opts['text_case']
-              })
-              pdf.render_file(path)
-              multi_render_paths << path
             else
               pdf.start_new_page unless idx == 0
-              build_page(pdf, board, {
-                'zipper' => zipper, 
-                'pages' => obj['pages'], 
-                'backlinks' => obj['backlinks'][board['id']] || [], 
-                'headerless' => !!opts['headerless'], 
-                'font' => font,
-                'links' => true,
-                'text_on_top' => !!opts['text_on_top'], 
-                'transparent_background' => !!opts['transparent_background'],
-                'symbol_background' => opts['symbol_background'],
-                'text_case' => opts['text_case']
-              })
+            end
+            build_page(pdf, board, {
+              'zipper' => zipper, 
+              'pages' => obj['pages'],
+              'backlinks' => obj['backlinks'][board['id']] || [], 
+              'headerless' => !!opts['headerless'], 
+              'font' => font,
+              'links' => false,
+              'text_on_top' => !!opts['text_on_top'], 
+              'transparent_background' => !!opts['transparent_background'],
+              'symbol_background' => opts['symbol_background'],
+              'text_case' => opts['text_case']
+            })
+            if multi_render
+              pdf.render_file(path)
+              multi_render_paths << path
             end
           end
           OBF::Utils.log "  finished pdf of board #{idx}/#{obj['boards'].length} #{Time.now.to_i - started}s"
