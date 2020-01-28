@@ -8,7 +8,7 @@ require 'ostruct'
 
 def external_board
   res = OBF::Utils.obf_shell
-  res['id'] = rand(99999)
+  res['id'] = "brd_#{rand(99999)}_#{Time.now.to_i}"
   res['name'] = 'Unnamed Board'
   res['url'] = 'http://www.boards.com/example'
   res

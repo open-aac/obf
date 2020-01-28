@@ -44,25 +44,25 @@ module OBF::PDF
       }
       pdf = Prawn::Document.new(doc_opts)
       # remember: https://www.alphabet-type.com/tools/charset-checker/
-      pdf.font_families['THFahKwangBold'] = {
+      pdf.font_families.update('THFahKwangBold' => {
         normal: {font: 'THFahKwangBold', file: File.expand_path('../../THFahKwangBold.ttf', __FILE__)}
-      }
-      pdf.font_families['MiedingerBook'] = {
+      })
+      pdf.font_families.update('MiedingerBook' => {
         normal: {font: 'MiedingerBook', file: File.expand_path('../../MiedingerBook.ttf', __FILE__)}
-      }
-      pdf.font_families['TimesNewRoman'] = {
+      })
+      pdf.font_families.update('TimesNewRoman' => {
         normal: {font: 'TimesNewRoman', file: File.expand_path('../../TimesNewRoman.ttf', __FILE__)}
-      }
-      pdf.font_families['Arial'] = {
+      })
+      pdf.font_families.update('Arial' => {
         normal: {font: 'Arial', file: File.expand_path('../../Arial.ttf', __FILE__)}
-      }
-      pdf.fallback_fonts = ['TimesNewRoman', 'THFahKwangBold', 'MiedingerBook', 'Arial']
+      })
+      pdf.fallback_fonts = ['Times-Roman', 'THFahKwangBold', 'MiedingerBook', 'Arial']
 
       font = opts['font'] if opts['font'] && File.exists?(opts['font'])
       if font && File.exists?(font)
         pdf.font(font) 
       else
-        #pdf.font('TimesNewRoman')
+        pdf.font('Arial')
       end
     
       multi_render_paths = []
@@ -133,6 +133,7 @@ module OBF::PDF
         })
       end
       if multi_render_paths.length > 0
+        # `cp #{multi_render_paths[0]} #{dest_path}`
         `gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile=#{dest_path} #{multi_render_paths.join(' ')}`
       else
         pdf.render_file(dest_path)
@@ -360,7 +361,7 @@ module OBF::PDF
                 if font && File.exists?(font)
                   pdf.font(font) 
                 else
-                  pdf.font('TimesNewRoman')
+                  pdf.font('Times-Roman')
                 end
                 direction = text.match(rtl_regex) ? :rtl : :ltr
                 if options['text_case'] == 'upper'
