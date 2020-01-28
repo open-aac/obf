@@ -56,7 +56,7 @@ module OBF::PDF
       pdf.font_families['Arial'] = {
         normal: {font: 'Arial', file: File.expand_path('../../Arial.ttf', __FILE__)}
       }
-      pdf.fallback_fonts = ['TimesNewRoman', 'THFahKwangBold', 'MiedingerBook']
+      pdf.fallback_fonts = ['TimesNewRoman', 'THFahKwangBold', 'MiedingerBook', 'Arial']
 
       font = opts['font'] if opts['font'] && File.exists?(opts['font'])
       if font && File.exists?(font)
@@ -161,7 +161,11 @@ module OBF::PDF
       if !options['headerless']
         header_height = 80
         pdf.bounding_box([0, doc_height], :width => doc_width, :height => header_height) do
-          pdf.font('Arial')
+          begin
+            pdf.font('Arial')
+          rescue => e
+            pdf.font(File.expand_path('../../Arial.ttf', __FILE__)) rescue nil
+          end
           pdf.line_width = 2
           pdf.font_size 16
           pdf.fill_color "eeeeee"
