@@ -183,7 +183,7 @@ module OBF::PDF
               pdf.formatted_text_box [text_options], :at => [x + 10, header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
               backlinks = (options['backlinks'] || []).join(',')
               pdf.fill_color "ffffff"
-              pdf.formatted_text_box [{:text => backlinks}], :at => [x + 10, header_height + 5], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+              pdf.formatted_text_box [{:text => backlinks}], :at => [x + 10, header_height + 5 - 25], :width => 80, :height => 30, :align => :center, :valign => :center, :overflow => :shrink_to_fit
             end
           end
 
