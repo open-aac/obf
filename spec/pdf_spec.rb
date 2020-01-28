@@ -44,21 +44,33 @@ describe OBF::PDF do
     it "should render a multi-page obz" do
       b1 = external_board
       b2 = external_board
+      b3 = external_board
       b1['buttons'] = [{
         'id' => '1', 'load_board' => {'id' => b2['id']}
+      }, {
+        'id' => '2', 'load_board' => {'id' => b3['id']}
       }]
       b1['grid'] = {
+        'rows' => 1,
+        'columns' => 2,
+        'order' => [['1', '2']]
+      }
+      b2['buttons'] = [{
+        'id' => '1', 'load_board' => {'id' => b3['id']}
+      }]
+      b2['grid'] = {
         'rows' => 1,
         'columns' => 1,
         'order' => [['1']]
       }
       path1 = OBF::Utils.temp_path("stash")
       path2 = OBF::Utils.temp_path(["file", ".pdf"])
-      OBF::External.to_obz({'boards' => [b1, b2]}, path1, {})
+      OBF::External.to_obz({'boards' => [b1, b2, b3]}, path1, {})
       OBF::PDF.from_obz(path1, path2)
       File.unlink path1
       expect(File.exist?(path2)).to eq(true)
       expect(File.size(path2)).to be > 10
+      #`open #{path2}`
       File.unlink path2
     end
 

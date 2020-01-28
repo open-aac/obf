@@ -69,11 +69,13 @@ module OBF::PDF
       if obj['boards']
         multi_render = obj['boards'].length > 20
         obj['backlinks'] = {}
-        obj['boards'].each do |board|
-          board['buttons'].each do |button|
-            if button['load_board'] && button['load_board']['id']
-              obj['backlinks'][button['load_board']['id']] ||= []
-              obj['backlinks'][button['load_board']['id']] << board['id']
+        if obj['pages']
+          obj['boards'].each do |board|
+            board['buttons'].each do |button|
+              if button['load_board'] && button['load_board']['id']
+                obj['backlinks'][button['load_board']['id']] ||= []
+                obj['backlinks'][button['load_board']['id']] << obj['pages'][board['id']] if obj['pages'][board['id']]
+              end
             end
           end
         end
@@ -107,6 +109,7 @@ module OBF::PDF
               build_page(pdf, board, {
                 'zipper' => zipper, 
                 'pages' => obj['pages'], 
+                'backlinks' => obj['backlinks'][board['id']] || [], 
                 'headerless' => !!opts['headerless'], 
                 'font' => font,
                 'links' => true,
@@ -154,7 +157,7 @@ module OBF::PDF
       page_num = 0
     
       if options['pages']
-        page_num = options['pages'][obj['id']]
+        page_num = options['pages'][obj['id']].to_i
         pdf.add_dest("page#{page_num}", pdf.dest_fit) if options['links']
       end
       # header
@@ -177,12 +180,12 @@ module OBF::PDF
             x = 110
             pdf.fill_and_stroke_rounded_rectangle [x, header_height], 100, header_height, default_radius
             pdf.fill_color "6D81D1"
-            pdf.fill_and_stroke_polygon([x + 5, 45], [x + 35, 75], [x + 35, 60], [x + 95, 60], [x + 95, 30], [x + 35, 30], [x + 35, 15])
+            pdf.fill_and_stroke_polygon([x + 5, 45], [x + 35, 70], [x + 35, 60], [x + 95, 60], [x + 95, 30], [x + 35, 30], [x + 35, 20])
             pdf.fill_color "666666"
             text_options = {:text => "Go Back"}
             text_options[:anchor] = "page1" if options['links']
             pdf.formatted_text_box [text_options], :at => [x + 10, header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
-            backlinks = (obj['backlinks'] || []).length > 0 ? obj['backlinks'].join(',') : '1'
+            backlinks = (options['backlinks'] || []).length > 0 ? options['backlinks'].join(',') : '1'
             pdf.fill_color "ffffff"
             pdf.formatted_text_box [{:text => backlinks}], :at => [x + 10, header_height + 5], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
           end
@@ -423,6 +426,7 @@ module OBF::PDF
     
       # footer
       pdf.fill_color "bbbbbb"
+      obj['name'] = nil if obj['name'] == 'Unnamed Board'
       if OBF::PDF.footer_text || obj['name']
         text = [obj['name'], OBF::PDF.footer_text].compact.join(', ')
         offset = options['pages'] ? 400 : 300
