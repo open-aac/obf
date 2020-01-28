@@ -53,15 +53,30 @@ module OBF::PDF
       pdf.font_families['TimesNewRoman'] = {
         normal: {font: 'TimesNewRoman', file: File.expand_path('../../TimesNewRoman.ttf', __FILE__)}
       }
+      pdf.font_families['Arial'] = {
+        normal: {font: 'Arial', file: File.expand_path('../../Arial.ttf', __FILE__)}
+      }
       pdf.fallback_fonts = ['TimesNewRoman', 'THFahKwangBold', 'MiedingerBook']
 
       font = opts['font'] if opts['font'] && File.exists?(opts['font'])
-      font ||= File.expand_path('../../TimesNewRoman.ttf', __FILE__)
-      pdf.font(font) if File.exists?(font)
+      if font && File.exists?(font)
+        pdf.font(font) 
+      else
+        #pdf.font('TimesNewRoman')
+      end
     
       multi_render_paths = []
       if obj['boards']
         multi_render = obj['boards'].length > 20
+        obj['backlinks'] = {}
+        obj['boards'].each do |board|
+          board['buttons'].each do |button|
+            if button['load_board'] && button['load_board']['id']
+              obj['backlinks'][button['load_board']['id']] ||= []
+              obj['backlinks'][button['load_board']['id']] << board['id']
+            end
+          end
+        end
         obj['boards'].each_with_index do |board, idx|
           started = Time.now.to_i
           OBF::Utils.log "starting pdf of board #{idx} #{board['name'] || board['id']} at #{started}"
@@ -75,7 +90,8 @@ module OBF::PDF
               pdf = Prawn::Document.new(doc_opts)
               build_page(pdf, board, {
                 'zipper' => zipper, 
-                'pages' => obj['pages'], 
+                'pages' => obj['pages'],
+                'backlinks' => obj['backlinks'][board['id']] || [], 
                 'headerless' => !!opts['headerless'], 
                 'font' => font,
                 'links' => false,
@@ -135,6 +151,7 @@ module OBF::PDF
       default_radius = 3
       text_height = 20
       header_height = 0
+      page_num = 0
     
       if options['pages']
         page_num = options['pages'][obj['id']]
@@ -142,37 +159,92 @@ module OBF::PDF
       end
       # header
       if !options['headerless']
-        header_height = 100
-        pdf.bounding_box([0, doc_height], :width => doc_width, :height => 100) do
+        header_height = 80
+        pdf.bounding_box([0, doc_height], :width => doc_width, :height => header_height) do
+          pdf.font('Arial')
           pdf.line_width = 2
           pdf.font_size 16
-        
           pdf.fill_color "eeeeee"
           pdf.stroke_color "888888"
-          pdf.fill_and_stroke_rounded_rectangle [0, 100], 100, 100, default_radius
-          pdf.fill_color "6D81D1"
-          pdf.fill_and_stroke_polygon([5, 50], [35, 85], [35, 70], [95, 70], [95, 30], [35, 30], [35, 15])
+      
+          include_back = options['pages'] && page_num != 1
+          # Go Back
+          if include_back
+            x = 110
+            pdf.fill_and_stroke_rounded_rectangle [x, header_height], 100, header_height, default_radius
+            pdf.fill_color "6D81D1"
+            pdf.fill_and_stroke_polygon([x + 5, 45], [x + 35, 75], [x + 35, 60], [x + 95, 60], [x + 95, 30], [x + 35, 30], [x + 35, 15])
+            pdf.fill_color "666666"
+            text_options = {:text => "Go Back"}
+            text_options[:anchor] = "page1" if options['links']
+            pdf.formatted_text_box [text_options], :at => [x + 10, header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
+            backlinks = (obj['backlinks'] || []).length > 0 ? obj['backlinks'].join(',') : '1'
+            pdf.fill_color "ffffff"
+            pdf.formatted_text_box [{:text => backlinks}], :at => [x + 10, header_height + 5], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+          end
+
+          # Say it Out Loud
           pdf.fill_color "ffffff"
-          text_options = {:text => "Go Back"}
-          text_options[:anchor] = "page1" if options['links']
-          pdf.formatted_text_box [text_options], :at => [10, 90], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
-          pdf.fill_color "ffffff"
-          pdf.fill_and_stroke_rounded_rectangle [110, 100], (doc_width - 200 - 20), 100, default_radius
+          shift = include_back ? 0 : 55
+          offset = include_back ? 110 : 55
+          box_shift = include_back ? 110 : 0
+          
+          pdf.fill_and_stroke_rounded_rectangle [110 + box_shift, header_height], 170 + shift + shift, header_height, default_radius
           pdf.fill_color "DDDB54"
           pdf.fill_and_stroke do
-            pdf.move_to 160, 50
-            pdf.line_to 190, 70
-            pdf.curve_to [190, 30], :bounds => [[100, 130], [100, -30]]
-            pdf.line_to 160, 50
+            pdf.move_to 160 + offset, 40
+            pdf.line_to 190 + offset, 55
+            pdf.curve_to [125 + offset, 40], :bounds => [[180 + offset, 80], [125 + offset, 80]]
+            pdf.curve_to [190 + offset, 25], :bounds => [[125 + offset, 0], [180 + offset, 0]]
+            pdf.line_to 160 + offset, 40
           end
           pdf.fill_color "444444"
-          pdf.text_box "Say that sentence out loud for me", :at => [210, 90], :width => (doc_width - 200 - 120), :height => 80, :align => :left, :valign => :center, :overflow => :shrink_to_fit
+          pdf.text_box "Say that out loud for me", :at => [210 + offset, header_height], :width => 60, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+
+          # Start Over
+          x = doc_width
           pdf.fill_color "eeeeee"
-          pdf.fill_and_stroke_rounded_rectangle [(doc_width - 100), 100], 100, 100, default_radius
-          pdf.fill_color "aaaaaa"
-          pdf.fill_and_stroke_polygon([doc_width - 100 + 5, 50], [doc_width - 100 + 35, 85], [doc_width - 100 + 95, 85], [doc_width - 100 + 95, 15], [doc_width - 100 + 35, 15])
-          pdf.fill_color "ffffff"
-          pdf.text_box "Erase", :at => [(doc_width - 100 + 10), 90], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+          pdf.fill_and_stroke_rounded_rectangle [(doc_width - x), header_height], 100, header_height, default_radius
+          pdf.fill_color "5c9c6d"
+          pdf.stroke_color "25783b"
+          pdf.fill_and_stroke_polygon([doc_width - x + 50, 75], [doc_width - x + 80, 50], [doc_width - x + 80, 20], [doc_width - x + 20, 20], [doc_width - x + 20, 50])
+          pdf.stroke_color "888888"
+          pdf.fill_color "666666"
+          pdf.text_box "Start Over", :styles => [:bold], :at => [(doc_width - x + 10), header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
+
+          # Oops
+          x = 210
+          pdf.fill_color "eeeeee"
+          pdf.fill_and_stroke_rounded_rectangle [(doc_width - x), header_height], 100, header_height, default_radius
+          pdf.fill_color "6653a6"
+          pdf.stroke_color "554a78"
+          pdf.fill_and_stroke_polygon([doc_width - x + 50 - 7, 75], [doc_width - x + 50 + 7, 75], [doc_width - x + 50 + 7, 40], [doc_width - x + 50 - 7, 40])
+          pdf.fill_and_stroke_polygon([doc_width - x + 50 - 7, 33], [doc_width - x + 50 + 7, 33], [doc_width - x + 50 + 7, 20], [doc_width - x + 50 - 7, 20])
+          pdf.stroke_color "888888"
+          pdf.fill_color "666666"
+          pdf.text_box "Oops", :at => [(doc_width - x + 10), header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
+
+          # Stop
+          x = 320
+          pdf.fill_color "eeeeee"
+          pdf.fill_and_stroke_rounded_rectangle [(doc_width - x), header_height], 100, header_height, default_radius
+          pdf.fill_color "944747"
+          pdf.stroke_color "693636"
+          pdf.fill_and_stroke_polygon([doc_width - x + 39, 70], [doc_width - x + 61, 70], [doc_width - x + 75, 56], [doc_width - x + 75, 34], [doc_width - x + 61, 20], [doc_width - x + 39, 20], [doc_width - x + 25, 34], [doc_width - x + 25, 56])
+          pdf.stroke_color "888888"
+          pdf.fill_color "666666"
+          pdf.text_box "Stop", :at => [(doc_width - x + 10), header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
+          
+          # Clear
+          x = 100
+          pdf.fill_color "eeeeee"
+          pdf.fill_and_stroke_rounded_rectangle [(doc_width - x), header_height], 100, header_height, default_radius
+          pdf.stroke_color "666666"
+          pdf.fill_color "888888"
+          pdf.fill_and_stroke_polygon([doc_width - x + 10, 45], [doc_width - x + 35, 70], [doc_width - x + 90, 70], [doc_width - x + 90, 20], [doc_width - x + 35, 20])
+          pdf.stroke_color "888888"
+          pdf.fill_color "666666"
+          pdf.text_box "Clear", :at => [(doc_width - x + 10), header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
         end
       end
     
@@ -219,7 +291,7 @@ module OBF::PDF
           end
         end
         blocks << block if block
-        OBF::Utils.log("  final block #{block.to_json}")
+        # OBF::Utils.log("  final block #{block.to_json}")
         blocks.each_with_index do |block, idx|
           threads = []
           OBF::Utils.log("   block #{idx}")
@@ -253,82 +325,89 @@ module OBF::PDF
         obj['grid']['order'].each_with_index do |buttons, row|
           buttons.each_with_index do |button_id, col|
             button = obj['buttons'].detect{|b| b['id'] == button_id }
-            next if !button || button['hidden'] == true
+            blank_button = (!button || button['hidden'] == true)
+            next if options['skip_blank'] && blank_button
             x = (padding * col) + (col * button_width)
             y = text_height + padding - (padding * row) + grid_height - (row * button_height)
             pdf.bounding_box([x, y], :width => button_width, :height => button_height) do
               fill = "ffffff"
               border = "eeeeee"
-              if button['background_color']
+              if !blank_button && button['background_color']
                 fill = OBF::Utils.fix_color(button['background_color'], 'hex')
               end   
-              if button['border_color']
+              if !blank_button && button['border_color']
                 border = OBF::Utils.fix_color(button['border_color'], 'hex')
               end         
               pdf.fill_color fill
               pdf.stroke_color border
               pdf.fill_and_stroke_rounded_rectangle [0, button_height], button_width, button_height, default_radius
-              vertical = options['text_on_top'] ? button_height - text_height : button_height - 5
+              if !blank_button
+                vertical = options['text_on_top'] ? button_height - text_height : button_height - 5
 
-              text = (button['label'] || button['vocalization']).to_s
-              font = options['font']
-              # Nepali text isn't working as a fallback for some reason, it says "bad font family"
-              if text.match(Regexp.new("[" + NEPALI_ALPHABET + "]"))
-                font = File.expand_path('../../MiedingerBook.ttf', __FILE__)
-              end
-              pdf.font(font) if font && File.exists?(font)
-              direction = text.match(rtl_regex) ? :rtl : :ltr
-              if options['text_case'] == 'upper'
-                text = text.upcase
-              elsif options['text_case'] == 'lower'
-                text = text.downcase
-              end
-              text_color = OBF::Utils.fix_color(fill, 'contrast')
-              
-              if options['text_only']
-                # render text
-                pdf.fill_color text_color
-                pdf.text_box text, :at => [0, 0], :width => button_width, :height => button_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
-              else
-                # render image
-                pdf.bounding_box([5, vertical], :width => button_width - 10, :height => button_height - text_height - 5) do
-                  image = (obj['images_hash'] || {})[button['image_id']]
-                  if image
-                    bg = 'white'
-                    if options['transparent_background'] || options['symbol_background'] == 'transparent'
-                      bg = "\##{fill}"
-                    elsif options['symbol_background'] == 'black'
-                      bg = 'black'
-                    end
-                    image['threadable'] = false
-                    image_local_path = image['local_path'] if image && image['local_path'] && File.exist?(image['local_path'])
-                    image_local_path ||= image && OBF::Utils.save_image(image, options['zipper'], bg)
-                    if image_local_path && File.exist?(image_local_path)
-                      pdf.image(image_local_path, :fit => [button_width - 10, button_height - text_height - 5], :position => :center, :vposition => :center) rescue nil
-                      File.unlink image_local_path
-                    else
-                      OBF::Utils.log("  missing image #{image['id']} #{image_local_path}")
+                text = (button['label'] || button['vocalization']).to_s
+                font = options['font']
+                # Nepali text isn't working as a fallback for some reason, it says "bad font family"
+                if text.match(Regexp.new("[" + NEPALI_ALPHABET + "]"))
+                  font = File.expand_path('../../MiedingerBook.ttf', __FILE__)
+                end
+                if font && File.exists?(font)
+                  pdf.font(font) 
+                else
+                  pdf.font('TimesNewRoman')
+                end
+                direction = text.match(rtl_regex) ? :rtl : :ltr
+                if options['text_case'] == 'upper'
+                  text = text.upcase
+                elsif options['text_case'] == 'lower'
+                  text = text.downcase
+                end
+                text_color = OBF::Utils.fix_color(fill, 'contrast')
+                
+                if options['text_only']
+                  # render text
+                  pdf.fill_color text_color
+                  pdf.text_box text, :at => [0, 0], :width => button_width, :height => button_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
+                else
+                  # render image
+                  pdf.bounding_box([5, vertical], :width => button_width - 10, :height => button_height - text_height - 5) do
+                    image = (obj['images_hash'] || {})[button['image_id']]
+                    if image
+                      bg = 'white'
+                      if options['transparent_background'] || options['symbol_background'] == 'transparent'
+                        bg = "\##{fill}"
+                      elsif options['symbol_background'] == 'black'
+                        bg = 'black'
+                      end
+                      image['threadable'] = false
+                      image_local_path = image['local_path'] if image && image['local_path'] && File.exist?(image['local_path'])
+                      image_local_path ||= image && OBF::Utils.save_image(image, options['zipper'], bg)
+                      if image_local_path && File.exist?(image_local_path)
+                        pdf.image(image_local_path, :fit => [button_width - 10, button_height - text_height - 5], :position => :center, :vposition => :center) rescue nil
+                        File.unlink image_local_path
+                      else
+                        OBF::Utils.log("  missing image #{image['id']} #{image_local_path}")
+                      end
                     end
                   end
-                end
-                if options['pages'] && button['load_board']
-                  page = options['pages'][button['load_board']['id']]
-                  if page
-                    page_vertical = options['text_on_top'] ? -2 + text_height : button_height + 2
-                    pdf.fill_color "ffffff"            
-                    pdf.stroke_color "eeeeee"            
-                    pdf.fill_and_stroke_rounded_rectangle [button_width - 18, page_vertical], 20, text_height, 5
-                    pdf.fill_color text_color
-                    text_options = {:text => page}
-                    text_options[:anchor] = "page#{page}" if options['links']
-                    pdf.formatted_text_box [text_options], :at => [button_width - 18, page_vertical], :width => 20, :height => text_height, :align => :center, :valign => :center
+                  if options['pages'] && button['load_board']
+                    page = options['pages'][button['load_board']['id']]
+                    if page
+                      page_vertical = options['text_on_top'] ? -2 + text_height : button_height + 2
+                      pdf.fill_color "ffffff"            
+                      pdf.stroke_color "eeeeee"            
+                      pdf.fill_and_stroke_rounded_rectangle [button_width - 18, page_vertical], 20, text_height, 5
+                      pdf.fill_color text_color
+                      text_options = {:text => page}
+                      text_options[:anchor] = "page#{page}" if options['links']
+                      pdf.formatted_text_box [text_options], :at => [button_width - 18, page_vertical], :width => 20, :height => text_height, :align => :center, :valign => :center
+                    end
                   end
+                
+                  # render text
+                  pdf.fill_color text_color
+                  vertical = options['text_on_top'] ? button_height : text_height
+                  pdf.text_box text, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
                 end
-              
-                # render text
-                pdf.fill_color text_color
-                vertical = options['text_on_top'] ? button_height : text_height
-                pdf.text_box text, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
               end
               pdf.font(options['font']) if options['font'] && File.exists?(options['font'])
             end
@@ -339,10 +418,11 @@ module OBF::PDF
       end
     
       # footer
-      pdf.fill_color "aaaaaa"
-      if OBF::PDF.footer_text
-        text = OBF::PDF.footer_text
-        pdf.formatted_text_box [{:text => text, :link => OBF::PDF.footer_url}], :at => [doc_width - 300, text_height], :width => 200, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
+      pdf.fill_color "bbbbbb"
+      if OBF::PDF.footer_text || obj['name']
+        text = [obj['name'], OBF::PDF.footer_text].compact.join(', ')
+        offset = options['pages'] ? 400 : 300
+        pdf.formatted_text_box [{:text => text, :link => OBF::PDF.footer_url}], :at => [doc_width - offset, text_height], :width => 300, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
       end
       pdf.fill_color "000000"
       if options['pages']

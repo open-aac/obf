@@ -103,12 +103,12 @@ describe OBF::PDF do
         else
           expect(bg).to eq('#80ff80')
         end
-      }.exactly(2).times.and_return(nil)
+      }.exactly(4).times.and_return(nil)
       OBF::PDF.from_obf('./spec/samples/inline_images.obf', path2, nil, {'transparent_background' => true})
 
       expect(File.exist?(path2)).to eq(true)
-      expect(File.size(path2)).to be < 30000
-#     `open #{path2}`
+      #`open #{path2}`
+      expect(File.size(path2)).to be < 40000
       File.unlink path2
     end
     
@@ -219,7 +219,7 @@ describe OBF::PDF do
         }
       }
       HEREDOC
-      OBF::PDF.from_external(JSON.parse(json), "./file.pdf", {'headerless' => true, 'text_on_top' => true, 'symbol_background' => 'transparent'})
+      OBF::PDF.from_external(JSON.parse(json), "./file.pdf", {'headerless' => false, 'text_on_top' => true, 'symbol_background' => 'transparent'})
       # `open ./file.pdf`
     end
 
