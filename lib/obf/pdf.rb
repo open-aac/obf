@@ -78,6 +78,7 @@ module OBF::PDF
               end
             end
           end
+          OBF::Utils.log "backlinks #{obj['backlinks'].to_json}"
         end
         obj['boards'].each_with_index do |board, idx|
           started = Time.now.to_i
@@ -175,20 +176,24 @@ module OBF::PDF
           pdf.fill_color "eeeeee"
           pdf.stroke_color "888888"
       
-          include_back = options['pages'] && page_num != 1
+          include_back = options['pages'] && page_num != 1 && page_num != 0
           # Go Back
           if include_back
-            x = 110
-            pdf.fill_and_stroke_rounded_rectangle [x, header_height], 100, header_height, default_radius
-            pdf.fill_color "6D81D1"
-            pdf.fill_and_stroke_polygon([x + 5, 45], [x + 35, 70], [x + 35, 60], [x + 95, 60], [x + 95, 30], [x + 35, 30], [x + 35, 20])
-            pdf.fill_color "666666"
-            text_options = {:text => "Go Back"}
-            text_options[:anchor] = "page1" if options['links']
-            pdf.formatted_text_box [text_options], :at => [x + 10, header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
-            backlinks = (options['backlinks'] || []).length > 0 ? options['backlinks'].join(',') : '1'
-            pdf.fill_color "ffffff"
-            pdf.formatted_text_box [{:text => backlinks}], :at => [x + 10, header_height + 5], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+            OBF::Utils.log "  board backlinks #{obj['id']} #{options['backlinks'].to_json}"
+            options['backlinks'] ||= []
+            if options['backlinks'].length > 0
+              x = 110
+              pdf.fill_and_stroke_rounded_rectangle [x, header_height], 100, header_height, default_radius
+              pdf.fill_color "6D81D1"
+              pdf.fill_and_stroke_polygon([x + 5, 45], [x + 35, 70], [x + 35, 60], [x + 95, 60], [x + 95, 30], [x + 35, 30], [x + 35, 20])
+              pdf.fill_color "666666"
+              text_options = {:text => "Go Back"}
+              text_options[:anchor] = "page1" if options['links']
+              pdf.formatted_text_box [text_options], :at => [x + 10, header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
+              backlinks = (options['backlinks'] || []).join(',')
+              pdf.fill_color "ffffff"
+              pdf.formatted_text_box [{:text => backlinks}], :at => [x + 10, header_height + 5], :width => 80, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+            end
           end
 
           # Say it Out Loud
@@ -428,14 +433,15 @@ module OBF::PDF
       # footer
       pdf.fill_color "bbbbbb"
       obj['name'] = nil if obj['name'] == 'Unnamed Board'
+      pdf.font('Times-Roman')
       if OBF::PDF.footer_text || obj['name']
         text = [obj['name'], OBF::PDF.footer_text].compact.join(', ')
         offset = options['pages'] ? 400 : 300
         pdf.formatted_text_box [{:text => text, :link => OBF::PDF.footer_url}], :at => [doc_width - offset, text_height], :width => 300, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
       end
       pdf.fill_color "000000"
-      if options['pages']
-        text_options = {:text => options['pages'][obj['id']]}
+      if options['pages'] && page_num != 0
+        text_options = {:text => page_num.to_s}
         text_options[:anchor] = "page1" if options['links']
         pdf.formatted_text_box [text_options], :at => [doc_width - 100, text_height], :width => 100, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
       end
