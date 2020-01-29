@@ -62,7 +62,7 @@ module OBF::PDF
       if font && File.exists?(font)
         pdf.font(font) 
       else
-        pdf.font('Arial')
+        File.expand_path('../../Arial.ttf', __FILE__)
       end
     
       multi_render_paths = []
@@ -157,11 +157,7 @@ module OBF::PDF
       if !options['headerless']
         header_height = 80
         pdf.bounding_box([0, doc_height], :width => doc_width, :height => header_height) do
-          begin
-            pdf.font('Arial')
-          rescue => e
-            pdf.font(File.expand_path('../../Arial.ttf', __FILE__)) rescue nil
-          end
+          pdf.font(File.expand_path('../../Arial.ttf', __FILE__)) rescue nil
           pdf.line_width = 2
           pdf.font_size 16
           pdf.fill_color "eeeeee"
@@ -183,7 +179,7 @@ module OBF::PDF
               pdf.formatted_text_box [text_options], :at => [x + 10, header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
               backlinks = (options['backlinks'] || []).join(',')
               pdf.fill_color "ffffff"
-              pdf.formatted_text_box [{:text => backlinks}], :at => [x + 10, header_height + 5 - 25], :width => 80, :height => 30, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+              pdf.formatted_text_box [{:text => backlinks}], :at => [x + 20, header_height + 5 - 25], :width => 70, :height => 30, :align => :center, :valign => :center, :overflow => :shrink_to_fit
             end
           end
 
@@ -357,7 +353,7 @@ module OBF::PDF
                 if font && File.exists?(font)
                   pdf.font(font) 
                 else
-                  pdf.font('Times-Roman')
+                  pdf.font(File.expand_path('../../TimesNewRoman.ttf', __FILE__))
                 end
                 direction = text.match(rtl_regex) ? :rtl : :ltr
                 if options['text_case'] == 'upper'
@@ -424,7 +420,7 @@ module OBF::PDF
       # footer
       pdf.fill_color "bbbbbb"
       obj['name'] = nil if obj['name'] == 'Unnamed Board'
-      pdf.font('Times-Roman')
+      pdf.font(File.expand_path('../../Arial.ttf', __FILE__))
       if OBF::PDF.footer_text || obj['name']
         text = [obj['name'], OBF::PDF.footer_text].compact.join(', ')
         offset = options['pages'] ? 400 : 300
