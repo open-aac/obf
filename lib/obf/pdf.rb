@@ -44,20 +44,28 @@ module OBF::PDF
       }
       pdf = Prawn::Document.new(doc_opts)
       # remember: https://www.alphabet-type.com/tools/charset-checker/
-      # pdf.font_families.update('THFahKwangBold' => {
-      #   normal: {font: 'THFahKwangBold', file: File.expand_path('../../THFahKwangBold.ttf', __FILE__)}
-      # })
-      # pdf.font_families.update('MiedingerBook' => {
-      #   normal: {font: 'MiedingerBook', file: File.expand_path('../../MiedingerBook.ttf', __FILE__)}
-      # })
-      # pdf.fallback_fonts = ['Times-Roman', 'THFahKwangBold', 'MiedingerBook', 'Helvetica']
-
-      font = opts['font'] if opts['font'] && File.exists?(opts['font'])
-      if font && File.exists?(font)
-#        pdf.font(font) 
+      pdf.font_families.update('THFahKwangBold' => {
+        normal: {font: 'THFahKwangBold', file: File.expand_path('../../THFahKwangBold.ttf', __FILE__)}
+      })
+      pdf.font_families.update('MiedingerBook' => {
+        normal: {font: 'MiedingerBook', file: File.expand_path('../../MiedingerBook.ttf', __FILE__)}
+      })
+      pdf.font_families.update('Arial' => {
+        normal: {font: 'Arial', file: File.expand_path('../../Arial.ttf', __FILE__)}
+      })
+      pdf.font_families.update('TimesNewRoman' => {
+        normal: {font: 'TimesNewRoman', file: File.expand_path('../../TimesNewRoman.ttf', __FILE__)}
+      })
+      default_font = 'TimesNewRoman'
+      if opts['font'] && !opts['font'].match(/TimesNewRoman/) && File.exists?(opts['font'])
+        pdf.font_families.update('DocDefault' => {
+          normal: {font: 'DocDefault', file: font}
+        })
+        default_font = 'DocDefault'
       else
-#        pdf.font('Times-Roman')
       end
+      pdf.fallback_fonts = ['TimesNewRoman', 'THFahKwangBold', 'MiedingerBook', 'Helvetica']
+      pdf.font(default_font)
     
       multi_render_paths = []
       if obj['boards']
@@ -94,7 +102,7 @@ module OBF::PDF
               'pages' => obj['pages'],
               'backlinks' => obj['backlinks'][board['id']] || [], 
               'headerless' => !!opts['headerless'], 
-              'font' => font,
+              'font' => default_font,
               'links' => false,
               'text_on_top' => !!opts['text_on_top'], 
               'transparent_background' => !!opts['transparent_background'],
@@ -150,7 +158,7 @@ module OBF::PDF
       if !options['headerless']
         header_height = 80
         pdf.bounding_box([0, doc_height], :width => doc_width, :height => header_height) do
-#          pdf.font('Helvetica')
+          pdf.font('Arial')
           pdf.line_width = 2
           pdf.font_size 16
           pdf.fill_color "eeeeee"
@@ -242,7 +250,7 @@ module OBF::PDF
       end
     
       # board
-#      pdf.font(options['font']) if options['font'] && File.exists?(options['font'])
+      pdf.font(options['font'])
       pdf.font_size 12
       padding = 10
       grid_height = doc_height - header_height - text_height - (padding * 2)
@@ -344,11 +352,7 @@ module OBF::PDF
                 if text.match(Regexp.new("[" + NEPALI_ALPHABET + "]"))
                   font = File.expand_path('../../MiedingerBook.ttf', __FILE__)
                 end
-                if font && File.exists?(font)
-#                  pdf.font(font) 
-                else
-#                  pdf.font('Times-Roman')
-                end
+                pdf.font(font)
                 direction = text.match(rtl_regex) ? :rtl : :ltr
                 if options['text_case'] == 'upper'
                   text = text.upcase
@@ -413,7 +417,7 @@ module OBF::PDF
       # footer
       pdf.fill_color "bbbbbb"
       obj['name'] = nil if obj['name'] == 'Unnamed Board'
-#      pdf.font('Helvetica')
+      pdf.font('Arial')
       if OBF::PDF.footer_text || obj['name']
         text = [obj['name'], OBF::PDF.footer_text].compact.join(', ')
         offset = options['pages'] ? 400 : 300

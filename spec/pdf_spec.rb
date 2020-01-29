@@ -46,9 +46,9 @@ describe OBF::PDF do
       b2 = external_board
       b3 = external_board
       b1['buttons'] = [{
-        'id' => '1', 'load_board' => {'id' => b2['id']}
+        'id' => '1', 'label' => 'AAAA', 'load_board' => {'id' => b2['id']}
       }, {
-        'id' => '2', 'load_board' => {'id' => b3['id']}
+        'id' => '2', 'label' => 'BBBB', 'load_board' => {'id' => b3['id']}
       }]
       b1['grid'] = {
         'rows' => 1,
