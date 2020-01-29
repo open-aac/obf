@@ -32,7 +32,7 @@ module OBF::PDF
     return dest_path
   end
 
-  def self.load_font(pdf, opts)
+  def self.load_fonts(pdf, opts)
     # remember: https://www.alphabet-type.com/tools/charset-checker/
     pdf.font_families.update('THFahKwangBold' => {
       normal: File.expand_path('../../THFahKwangBold.ttf', __FILE__)
@@ -73,7 +73,7 @@ module OBF::PDF
     
       multi_render_paths = []
       if obj['boards']
-        multi_render = obj['boards'].length > 20
+        multi_render = obj['boards'].length > 20 && `which gs`.length > 0
         obj['backlinks'] = {}
         if obj['pages']
           obj['boards'].each do |board|
