@@ -46,6 +46,7 @@ DEPENDENCIES
   prawn
   rspec
   rubyzip
+  ttfunk (= 1.5.1)
   typhoeus
 
 RUBY VERSION

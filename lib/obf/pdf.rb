@@ -45,24 +45,23 @@ module OBF::PDF
       pdf = Prawn::Document.new(doc_opts)
       # remember: https://www.alphabet-type.com/tools/charset-checker/
       pdf.font_families.update('THFahKwangBold' => {
-        normal: {font: 'THFahKwangBold', file: File.expand_path('../../THFahKwangBold.ttf', __FILE__)}
+        normal: File.expand_path('../../THFahKwangBold.ttf', __FILE__)
       })
       pdf.font_families.update('MiedingerBook' => {
-        normal: {font: 'MiedingerBook', file: File.expand_path('../../MiedingerBook.ttf', __FILE__)}
+        normal: File.expand_path('../../MiedingerBook.ttf', __FILE__)
       })
       pdf.font_families.update('Arial' => {
-        normal: {font: 'Arial', file: File.expand_path('../../Arial.ttf', __FILE__)}
+        normal: File.expand_path('../../Arial.ttf', __FILE__)
       })
       pdf.font_families.update('TimesNewRoman' => {
-        normal: {font: 'TimesNewRoman', file: File.expand_path('../../TimesNewRoman.ttf', __FILE__)}
+        normal: File.expand_path('../../TimesNewRoman.ttf', __FILE__)
       })
       default_font = 'TimesNewRoman'
       if opts['font'] && !opts['font'].match(/TimesNewRoman/) && File.exists?(opts['font'])
         pdf.font_families.update('DocDefault' => {
-          normal: {font: 'DocDefault', file: font}
+          normal: file: opts['font']
         })
         default_font = 'DocDefault'
-      else
       end
       pdf.fallback_fonts = ['TimesNewRoman', 'THFahKwangBold', 'MiedingerBook', 'Helvetica']
       pdf.font(default_font)
@@ -119,7 +118,7 @@ module OBF::PDF
       else
         build_page(pdf, obj, {
           'headerless' => !!opts['headerless'], 
-          'font' => font,
+          'font' => default_font,
           'text_on_top' => !!opts['text_on_top'], 
           'transparent_background' => !!opts['transparent_background'],
           'symbol_background' => opts['symbol_background'],
@@ -154,98 +153,112 @@ module OBF::PDF
         page_num = options['pages'][obj['id']].to_i
         pdf.add_dest("page#{page_num}", pdf.dest_fit) if options['links']
       end
-      # header
-      if !options['headerless']
-        header_height = 80
-        pdf.bounding_box([0, doc_height], :width => doc_width, :height => header_height) do
-          pdf.font('Arial')
-          pdf.line_width = 2
-          pdf.font_size 16
-          pdf.fill_color "eeeeee"
-          pdf.stroke_color "888888"
-      
-          include_back = options['pages'] && page_num != 1 && page_num != 0
-          # Go Back
-          if include_back
-            OBF::Utils.log "  board backlinks #{obj['id']} #{options['backlinks'].to_json}"
-            options['backlinks'] ||= []
-            if options['backlinks'].length > 0
-              x = 110
-              pdf.fill_and_stroke_rounded_rectangle [x, header_height], 100, header_height, default_radius
-              pdf.fill_color "6D81D1"
-              pdf.fill_and_stroke_polygon([x + 5, 45], [x + 35, 70], [x + 35, 60], [x + 95, 60], [x + 95, 30], [x + 35, 30], [x + 35, 20])
-              pdf.fill_color "666666"
-              text_options = {:text => "Go Back"}
-              text_options[:anchor] = "page1" if options['links']
-              pdf.formatted_text_box [text_options], :at => [x + 10, header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
-              backlinks = (options['backlinks'] || []).join(',')
+      pdf.font('Arial') do
+        # header
+        if !options['headerless']
+          header_height = 80
+          pdf.bounding_box([0, doc_height], :width => doc_width, :height => header_height) do
+            pdf.line_width = 2
+            pdf.font_size 16
+            pdf.fill_color "eeeeee"
+            pdf.stroke_color "888888"
+              include_back = options['pages'] && page_num != 1 && page_num != 0
+              # Go Back
+              if include_back
+                OBF::Utils.log "  board backlinks #{obj['id']} #{options['backlinks'].to_json}"
+                options['backlinks'] ||= []
+                if options['backlinks'].length > 0
+                  x = 110
+                  pdf.fill_and_stroke_rounded_rectangle [x, header_height], 100, header_height, default_radius
+                  pdf.fill_color "6D81D1"
+                  pdf.fill_and_stroke_polygon([x + 5, 45], [x + 35, 70], [x + 35, 60], [x + 95, 60], [x + 95, 30], [x + 35, 30], [x + 35, 20])
+                  pdf.fill_color "666666"
+                  text_options = {:text => "Go Back"}
+                  text_options[:anchor] = "page1" if options['links']
+                  pdf.formatted_text_box [text_options], :at => [x + 10, header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
+                  backlinks = (options['backlinks'] || []).join(',')
+                  pdf.fill_color "ffffff"
+                  pdf.formatted_text_box [{:text => backlinks}], :at => [x + 20, header_height + 5 - 25], :width => 70, :height => 30, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+                end
+              end
+
+              # Say it Out Loud
               pdf.fill_color "ffffff"
-              pdf.formatted_text_box [{:text => backlinks}], :at => [x + 20, header_height + 5 - 25], :width => 70, :height => 30, :align => :center, :valign => :center, :overflow => :shrink_to_fit
-            end
+              shift = include_back ? 0 : 55
+              offset = include_back ? 110 : 55
+              box_shift = include_back ? 110 : 0
+              
+              pdf.fill_and_stroke_rounded_rectangle [110 + box_shift, header_height], 170 + shift + shift, header_height, default_radius
+              pdf.fill_color "DDDB54"
+              pdf.fill_and_stroke do
+                pdf.move_to 160 + offset, 40
+                pdf.line_to 190 + offset, 55
+                pdf.curve_to [125 + offset, 40], :bounds => [[180 + offset, 80], [125 + offset, 80]]
+                pdf.curve_to [190 + offset, 25], :bounds => [[125 + offset, 0], [180 + offset, 0]]
+                pdf.line_to 160 + offset, 40
+              end
+              pdf.fill_color "444444"
+              pdf.text_box "Say that out loud for me", :at => [210 + offset, header_height], :width => 60, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+
+              # Start Over
+              x = doc_width
+              pdf.fill_color "eeeeee"
+              pdf.fill_and_stroke_rounded_rectangle [(doc_width - x), header_height], 100, header_height, default_radius
+              pdf.fill_color "5c9c6d"
+              pdf.stroke_color "25783b"
+              pdf.fill_and_stroke_polygon([doc_width - x + 50, 75], [doc_width - x + 80, 50], [doc_width - x + 80, 20], [doc_width - x + 20, 20], [doc_width - x + 20, 50])
+              pdf.stroke_color "888888"
+              pdf.fill_color "666666"
+              pdf.text_box "Start Over", :styles => [:bold], :at => [(doc_width - x + 10), header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
+
+              # Oops
+              x = 210
+              pdf.fill_color "eeeeee"
+              pdf.fill_and_stroke_rounded_rectangle [(doc_width - x), header_height], 100, header_height, default_radius
+              pdf.fill_color "6653a6"
+              pdf.stroke_color "554a78"
+              pdf.fill_and_stroke_polygon([doc_width - x + 50 - 7, 75], [doc_width - x + 50 + 7, 75], [doc_width - x + 50 + 7, 40], [doc_width - x + 50 - 7, 40])
+              pdf.fill_and_stroke_polygon([doc_width - x + 50 - 7, 33], [doc_width - x + 50 + 7, 33], [doc_width - x + 50 + 7, 20], [doc_width - x + 50 - 7, 20])
+              pdf.stroke_color "888888"
+              pdf.fill_color "666666"
+              pdf.text_box "Oops", :at => [(doc_width - x + 10), header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
+
+              # Stop
+              x = 320
+              pdf.fill_color "eeeeee"
+              pdf.fill_and_stroke_rounded_rectangle [(doc_width - x), header_height], 100, header_height, default_radius
+              pdf.fill_color "944747"
+              pdf.stroke_color "693636"
+              pdf.fill_and_stroke_polygon([doc_width - x + 39, 70], [doc_width - x + 61, 70], [doc_width - x + 75, 56], [doc_width - x + 75, 34], [doc_width - x + 61, 20], [doc_width - x + 39, 20], [doc_width - x + 25, 34], [doc_width - x + 25, 56])
+              pdf.stroke_color "888888"
+              pdf.fill_color "666666"
+              pdf.text_box "Stop", :at => [(doc_width - x + 10), header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
+              
+              # Clear
+              x = 100
+              pdf.fill_color "eeeeee"
+              pdf.fill_and_stroke_rounded_rectangle [(doc_width - x), header_height], 100, header_height, default_radius
+              pdf.stroke_color "666666"
+              pdf.fill_color "888888"
+              pdf.fill_and_stroke_polygon([doc_width - x + 10, 45], [doc_width - x + 35, 70], [doc_width - x + 90, 70], [doc_width - x + 90, 20], [doc_width - x + 35, 20])
+              pdf.stroke_color "888888"
+              pdf.fill_color "666666"
+              pdf.text_box "Clear", :at => [(doc_width - x + 10), header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
           end
-
-          # Say it Out Loud
-          pdf.fill_color "ffffff"
-          shift = include_back ? 0 : 55
-          offset = include_back ? 110 : 55
-          box_shift = include_back ? 110 : 0
-          
-          pdf.fill_and_stroke_rounded_rectangle [110 + box_shift, header_height], 170 + shift + shift, header_height, default_radius
-          pdf.fill_color "DDDB54"
-          pdf.fill_and_stroke do
-            pdf.move_to 160 + offset, 40
-            pdf.line_to 190 + offset, 55
-            pdf.curve_to [125 + offset, 40], :bounds => [[180 + offset, 80], [125 + offset, 80]]
-            pdf.curve_to [190 + offset, 25], :bounds => [[125 + offset, 0], [180 + offset, 0]]
-            pdf.line_to 160 + offset, 40
-          end
-          pdf.fill_color "444444"
-          pdf.text_box "Say that out loud for me", :at => [210 + offset, header_height], :width => 60, :height => 80, :align => :center, :valign => :center, :overflow => :shrink_to_fit
-
-          # Start Over
-          x = doc_width
-          pdf.fill_color "eeeeee"
-          pdf.fill_and_stroke_rounded_rectangle [(doc_width - x), header_height], 100, header_height, default_radius
-          pdf.fill_color "5c9c6d"
-          pdf.stroke_color "25783b"
-          pdf.fill_and_stroke_polygon([doc_width - x + 50, 75], [doc_width - x + 80, 50], [doc_width - x + 80, 20], [doc_width - x + 20, 20], [doc_width - x + 20, 50])
-          pdf.stroke_color "888888"
-          pdf.fill_color "666666"
-          pdf.text_box "Start Over", :styles => [:bold], :at => [(doc_width - x + 10), header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
-
-          # Oops
-          x = 210
-          pdf.fill_color "eeeeee"
-          pdf.fill_and_stroke_rounded_rectangle [(doc_width - x), header_height], 100, header_height, default_radius
-          pdf.fill_color "6653a6"
-          pdf.stroke_color "554a78"
-          pdf.fill_and_stroke_polygon([doc_width - x + 50 - 7, 75], [doc_width - x + 50 + 7, 75], [doc_width - x + 50 + 7, 40], [doc_width - x + 50 - 7, 40])
-          pdf.fill_and_stroke_polygon([doc_width - x + 50 - 7, 33], [doc_width - x + 50 + 7, 33], [doc_width - x + 50 + 7, 20], [doc_width - x + 50 - 7, 20])
-          pdf.stroke_color "888888"
-          pdf.fill_color "666666"
-          pdf.text_box "Oops", :at => [(doc_width - x + 10), header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
-
-          # Stop
-          x = 320
-          pdf.fill_color "eeeeee"
-          pdf.fill_and_stroke_rounded_rectangle [(doc_width - x), header_height], 100, header_height, default_radius
-          pdf.fill_color "944747"
-          pdf.stroke_color "693636"
-          pdf.fill_and_stroke_polygon([doc_width - x + 39, 70], [doc_width - x + 61, 70], [doc_width - x + 75, 56], [doc_width - x + 75, 34], [doc_width - x + 61, 20], [doc_width - x + 39, 20], [doc_width - x + 25, 34], [doc_width - x + 25, 56])
-          pdf.stroke_color "888888"
-          pdf.fill_color "666666"
-          pdf.text_box "Stop", :at => [(doc_width - x + 10), header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
-          
-          # Clear
-          x = 100
-          pdf.fill_color "eeeeee"
-          pdf.fill_and_stroke_rounded_rectangle [(doc_width - x), header_height], 100, header_height, default_radius
-          pdf.stroke_color "666666"
-          pdf.fill_color "888888"
-          pdf.fill_and_stroke_polygon([doc_width - x + 10, 45], [doc_width - x + 35, 70], [doc_width - x + 90, 70], [doc_width - x + 90, 20], [doc_width - x + 35, 20])
-          pdf.stroke_color "888888"
-          pdf.fill_color "666666"
-          pdf.text_box "Clear", :at => [(doc_width - x + 10), header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
+        end
+        # footer
+        pdf.fill_color "bbbbbb"
+        obj['name'] = nil if obj['name'] == 'Unnamed Board'
+        if OBF::PDF.footer_text || obj['name']
+          text = [obj['name'], OBF::PDF.footer_text].compact.join(', ')
+          offset = options['pages'] ? 400 : 300
+          pdf.formatted_text_box [{:text => text, :link => OBF::PDF.footer_url}], :at => [doc_width - offset, text_height], :width => 300, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
+        end
+        pdf.fill_color "000000"
+        if options['pages'] && page_num != 0
+          text_options = {:text => page_num.to_s}
+          text_options[:anchor] = "page1" if options['links']
+          pdf.formatted_text_box [text_options], :at => [doc_width - 100, text_height], :width => 100, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
         end
       end
     
@@ -412,22 +425,6 @@ module OBF::PDF
             OBF::Utils.update_current_progress(index.to_f / (obj['grid']['rows'] * obj['grid']['columns']).to_f)
           end
         end
-      end
-    
-      # footer
-      pdf.fill_color "bbbbbb"
-      obj['name'] = nil if obj['name'] == 'Unnamed Board'
-      pdf.font('Arial')
-      if OBF::PDF.footer_text || obj['name']
-        text = [obj['name'], OBF::PDF.footer_text].compact.join(', ')
-        offset = options['pages'] ? 400 : 300
-        pdf.formatted_text_box [{:text => text, :link => OBF::PDF.footer_url}], :at => [doc_width - offset, text_height], :width => 300, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
-      end
-      pdf.fill_color "000000"
-      if options['pages'] && page_num != 0
-        text_options = {:text => page_num.to_s}
-        text_options[:anchor] = "page1" if options['links']
-        pdf.formatted_text_box [text_options], :at => [doc_width - 100, text_height], :width => 100, :height => text_height, :align => :right, :valign => :center, :overflow => :shrink_to_fit
       end
     end
   end
