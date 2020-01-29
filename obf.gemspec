@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'ruby-debug'
 
-  s.version     = '0.9.8.33'
+  s.version     = '0.9.8.34'
   s.date        = '2020-01-28'
   s.summary     = "Open Board Format"
   s.extra_rdoc_files = %W(LICENSE)

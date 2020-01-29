@@ -59,7 +59,7 @@ module OBF::PDF
       default_font = 'TimesNewRoman'
       if opts['font'] && !opts['font'].match(/TimesNewRoman/) && File.exists?(opts['font'])
         pdf.font_families.update('DocDefault' => {
-          normal: file: opts['font']
+          normal: opts['font']
         })
         default_font = 'DocDefault'
       end
