@@ -44,25 +44,19 @@ module OBF::PDF
       }
       pdf = Prawn::Document.new(doc_opts)
       # remember: https://www.alphabet-type.com/tools/charset-checker/
-      pdf.font_families.update('THFahKwangBold' => {
-        normal: {font: 'THFahKwangBold', file: File.expand_path('../../THFahKwangBold.ttf', __FILE__)}
-      })
-      pdf.font_families.update('MiedingerBook' => {
-        normal: {font: 'MiedingerBook', file: File.expand_path('../../MiedingerBook.ttf', __FILE__)}
-      })
-      pdf.font_families.update('TimesNewRoman' => {
-        normal: {font: 'TimesNewRoman', file: File.expand_path('../../TimesNewRoman.ttf', __FILE__)}
-      })
-      pdf.font_families.update('Arial' => {
-        normal: {font: 'Arial', file: File.expand_path('../../Arial.ttf', __FILE__)}
-      })
-      pdf.fallback_fonts = ['Times-Roman', 'THFahKwangBold', 'MiedingerBook', 'Arial']
+      # pdf.font_families.update('THFahKwangBold' => {
+      #   normal: {font: 'THFahKwangBold', file: File.expand_path('../../THFahKwangBold.ttf', __FILE__)}
+      # })
+      # pdf.font_families.update('MiedingerBook' => {
+      #   normal: {font: 'MiedingerBook', file: File.expand_path('../../MiedingerBook.ttf', __FILE__)}
+      # })
+      # pdf.fallback_fonts = ['Times-Roman', 'THFahKwangBold', 'MiedingerBook', 'Helvetica']
 
       font = opts['font'] if opts['font'] && File.exists?(opts['font'])
       if font && File.exists?(font)
-        pdf.font(font) 
+#        pdf.font(font) 
       else
-        File.expand_path('../../Arial.ttf', __FILE__)
+#        pdf.font('Times-Roman')
       end
     
       multi_render_paths = []
@@ -141,7 +135,6 @@ module OBF::PDF
   # b.generate_download('1_2', 'pdf', {'include' => 'all', 'headerless' => true, 'symbol_background' => 'transparent'})
   def self.build_page(pdf, obj, options)
     OBF::Utils.as_progress_percent(0, 1.0) do
-      pdf.font(options['font']) if options['font'] && File.exists?(options['font'])
       doc_width = 11*72 - 72
       doc_height = 8.5*72 - 72
       default_radius = 3
@@ -157,7 +150,7 @@ module OBF::PDF
       if !options['headerless']
         header_height = 80
         pdf.bounding_box([0, doc_height], :width => doc_width, :height => header_height) do
-          pdf.font(File.expand_path('../../Arial.ttf', __FILE__)) rescue nil
+#          pdf.font('Helvetica')
           pdf.line_width = 2
           pdf.font_size 16
           pdf.fill_color "eeeeee"
@@ -249,6 +242,7 @@ module OBF::PDF
       end
     
       # board
+#      pdf.font(options['font']) if options['font'] && File.exists?(options['font'])
       pdf.font_size 12
       padding = 10
       grid_height = doc_height - header_height - text_height - (padding * 2)
@@ -351,9 +345,9 @@ module OBF::PDF
                   font = File.expand_path('../../MiedingerBook.ttf', __FILE__)
                 end
                 if font && File.exists?(font)
-                  pdf.font(font) 
+#                  pdf.font(font) 
                 else
-                  pdf.font(File.expand_path('../../TimesNewRoman.ttf', __FILE__))
+#                  pdf.font('Times-Roman')
                 end
                 direction = text.match(rtl_regex) ? :rtl : :ltr
                 if options['text_case'] == 'upper'
@@ -409,7 +403,6 @@ module OBF::PDF
                   pdf.text_box text, :at => [0, vertical], :width => button_width, :height => text_height, :align => :center, :valign => :center, :overflow => :shrink_to_fit, :direction => direction
                 end
               end
-              pdf.font(options['font']) if options['font'] && File.exists?(options['font'])
             end
             index = col + (row * obj['grid']['columns'])
             OBF::Utils.update_current_progress(index.to_f / (obj['grid']['rows'] * obj['grid']['columns']).to_f)
@@ -420,7 +413,7 @@ module OBF::PDF
       # footer
       pdf.fill_color "bbbbbb"
       obj['name'] = nil if obj['name'] == 'Unnamed Board'
-      pdf.font(File.expand_path('../../Arial.ttf', __FILE__))
+#      pdf.font('Helvetica')
       if OBF::PDF.footer_text || obj['name']
         text = [obj['name'], OBF::PDF.footer_text].compact.join(', ')
         offset = options['pages'] ? 400 : 300
