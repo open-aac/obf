@@ -31,6 +31,32 @@ module OBF::PDF
     build_pdf(obj, dest_path, zipper, opts)
     return dest_path
   end
+
+  def self.load_font(pdf, opts)
+    # remember: https://www.alphabet-type.com/tools/charset-checker/
+    pdf.font_families.update('THFahKwangBold' => {
+      normal: File.expand_path('../../THFahKwangBold.ttf', __FILE__)
+    })
+    pdf.font_families.update('MiedingerBook' => {
+      normal: File.expand_path('../../MiedingerBook.ttf', __FILE__)
+    })
+    pdf.font_families.update('Arial' => {
+      normal: File.expand_path('../../Arial.ttf', __FILE__)
+    })
+    pdf.font_families.update('TimesNewRoman' => {
+      normal: File.expand_path('../../TimesNewRoman.ttf', __FILE__)
+    })
+    default_font = 'TimesNewRoman'
+    if opts['font'] && !opts['font'].match(/TimesNewRoman/) && File.exists?(opts['font'])
+      pdf.font_families.update('DocDefault' => {
+        normal: opts['font']
+      })
+      default_font = 'DocDefault'
+    end
+    pdf.fallback_fonts = ['TimesNewRoman', 'THFahKwangBold', 'MiedingerBook', 'Helvetica']
+    pdf.font(default_font)
+    default_font
+  end
   
   def self.build_pdf(obj, dest_path, zipper, opts={})
     OBF::Utils.as_progress_percent(0, 1.0) do
@@ -43,28 +69,7 @@ module OBF::PDF
         }
       }
       pdf = Prawn::Document.new(doc_opts)
-      # remember: https://www.alphabet-type.com/tools/charset-checker/
-      pdf.font_families.update('THFahKwangBold' => {
-        normal: File.expand_path('../../THFahKwangBold.ttf', __FILE__)
-      })
-      pdf.font_families.update('MiedingerBook' => {
-        normal: File.expand_path('../../MiedingerBook.ttf', __FILE__)
-      })
-      pdf.font_families.update('Arial' => {
-        normal: File.expand_path('../../Arial.ttf', __FILE__)
-      })
-      pdf.font_families.update('TimesNewRoman' => {
-        normal: File.expand_path('../../TimesNewRoman.ttf', __FILE__)
-      })
-      default_font = 'TimesNewRoman'
-      if opts['font'] && !opts['font'].match(/TimesNewRoman/) && File.exists?(opts['font'])
-        pdf.font_families.update('DocDefault' => {
-          normal: opts['font']
-        })
-        default_font = 'DocDefault'
-      end
-      pdf.fallback_fonts = ['TimesNewRoman', 'THFahKwangBold', 'MiedingerBook', 'Helvetica']
-      pdf.font(default_font)
+      default_font = load_fonts(pdf, opts)
     
       multi_render_paths = []
       if obj['boards']
@@ -89,10 +94,10 @@ module OBF::PDF
           OBF::Utils.as_progress_percent(pre, post) do
             # if more than 20 pages, build each page individually 
             # and combine them afterwards
-
             if multi_render
               path = OBF::Utils.temp_path("stash-#{idx}.pdf")
               pdf = Prawn::Document.new(doc_opts)
+              load_fonts(pdf, opts)
             else
               pdf.start_new_page unless idx == 0
             end
