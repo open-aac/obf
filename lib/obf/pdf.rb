@@ -181,9 +181,11 @@ module OBF::PDF
                   text_options = {:text => "Go Back"}
                   text_options[:anchor] = "page1" if options['links']
                   pdf.formatted_text_box [text_options], :at => [x + 10, header_height], :width => 80, :height => 80, :align => :center, :valign => :bottom, :overflow => :shrink_to_fit
-                  backlinks = (options['backlinks'] || []).join(',')
-                  pdf.fill_color "ffffff"
-                  pdf.formatted_text_box [{:text => backlinks}], :at => [x + 20, header_height + 5 - 25], :width => 70, :height => 30, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+                  if options['backlinks'].length <= 3
+                    backlinks = (options['backlinks'] || []).join(',')
+                    pdf.fill_color "ffffff"
+                    pdf.formatted_text_box [{:text => backlinks}], :at => [x + 20, header_height + 5 - 25], :width => 70, :height => 30, :align => :center, :valign => :center, :overflow => :shrink_to_fit
+                  end
                 end
               end
 

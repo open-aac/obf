@@ -70,8 +70,8 @@ describe OBF::PDF do
       File.unlink path1
       expect(File.exist?(path2)).to eq(true)
       expect(File.size(path2)).to be > 10
-      `open #{path2}`
-      #File.unlink path2
+      # `open #{path2}`
+      File.unlink path2
     end
 
     it "should render a headerless multi-page obz" do
