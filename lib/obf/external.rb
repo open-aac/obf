@@ -129,6 +129,7 @@ module OBF::External
           end
         end
       end
+      OBF::Utils.log("  batch-retrieving #{grabs.length} images for board #{res['name'] || res['id']}")
       hydra.run
       
       grabs.each do |grab|
@@ -192,6 +193,20 @@ module OBF::External
         end
         res['images'] << trim_empties(image)
       end
+    elsif to_include[:image_urls]
+      images.each do |original_image|
+        image = {
+          'id' => original_image['id'],
+          'width' => original_image['width'],
+          'height' => original_image['height'],
+          'license' => OBF::Utils.parse_license(original_image['license']),
+          'url' => original_image['url'],
+          'data_url' => original_image['data_url'],
+          'content_type' => original_image['content_type']
+        }
+        res['images'] << trim_empties(image)
+      end
+
     end
     
     if to_include[:sounds]
@@ -225,6 +240,18 @@ module OBF::External
           sound['path'] = zip_path
         end
         
+        res['sounds'] << trim_empties(sound)
+      end
+    elsif to_include[:sound_urls]
+      sounds.each do |original_sound|
+        sound = {
+          'id' => original_sound['id'],
+          'duration' => original_sound['duration'],
+          'license' => OBF::Utils.parse_license(original_sound['license']),
+          'url' => original_sound['url'],
+          'data_url' => original_sound['data_url'],
+          'content_type' => original_sound['content_type']
+        }
         res['sounds'] << trim_empties(sound)
       end
     end

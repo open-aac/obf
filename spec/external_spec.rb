@@ -173,6 +173,60 @@ describe OBF::External do
       }
       expect(json['sounds']).to eq(list)
     end
+
+    it "should include image and sound URLs only if specified" do
+      res = OpenStruct.new(:success? => true, :body => "abc", :headers => {'Content-Type' => 'text/plaintext'})
+      h = {reqs: []}
+      expect(Typhoeus::Hydra).to_not receive(:new)
+      ref = external_board
+      b = external_board
+      b['name'] = "My Board"
+      b['images'] = [{
+        'id' => '123',
+        'url' => "http://example.com/pic.png", 
+        'data_url' => "http://www.example.com/api/pic",
+        'content_type' => 'text/plaintext'
+      }]
+      b['sounds'] = [{
+        'id' => '234',
+        'url' => "http://example.com/sound.mp3", 
+        'content_type' => 'text/plaintext'
+      }]
+      b['buttons'] = [
+        {'id' => 1, 'label' => 'chicken', 'image_id' => b['images'][0]['id'], 'sound_id' => b['sounds'][0]['id']}
+      ]
+      b['grid'] = {
+        'rows' => 2,
+        'columns' => 2,
+        'order' => [[1,nil]]
+      }
+      file = Tempfile.new("stash")
+      OBF::External.to_obf(b, file.path, nil, {image_urls: true, sound_urls: true})
+      json = JSON.parse(file.read)
+      file.unlink
+      expect(json['id']).to eq(b['id'])
+      expect(json['name']).to eq('My Board')
+      expect(json['default_layout']).to eq('landscape')
+      expect(json['url']).to eq("http://www.boards.com/example")
+      list = []
+      list << {
+        'id' => b['images'][0]['id'],
+        'license' => {'type' => 'private'},
+        'url' => 'http://example.com/pic.png',
+        'data_url' => "http://www.example.com/api/pic",
+        'content_type' => 'text/plaintext'
+      }
+      expect(json['images']).to eq(list)
+
+      list = []
+      list << {
+        'id' => b['sounds'][0]['id'],
+        'license' => {'type' => 'private'},
+        'url' => 'http://example.com/sound.mp3',
+        'content_type' => 'text/plaintext'
+      }
+      expect(json['sounds']).to eq(list)
+    end
     
     it "should not include superfluous sounds or images"
     
