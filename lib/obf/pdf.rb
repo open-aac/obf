@@ -46,6 +46,10 @@ module OBF::PDF
     pdf.font_families.update('TimesNewRoman' => {
       normal: File.expand_path('../../TimesNewRoman.ttf', __FILE__)
     })
+    # TODO: option to add more fonts
+    pdf.font_families.update('Sazanami-Hanazono-Mincho' => {
+      normal: File.expand_path('../../Sazanami-Hanazono-Mincho.ttf', __FILE__)
+    })
     default_font = 'TimesNewRoman'
     if opts['font'] && !opts['font'].match(/TimesNewRoman/) && File.exists?(opts['font'])
       pdf.font_families.update('DocDefault' => {
@@ -53,7 +57,7 @@ module OBF::PDF
       })
       default_font = 'DocDefault'
     end
-    pdf.fallback_fonts = ['TimesNewRoman', 'THFahKwangBold', 'MiedingerBook', 'Helvetica']
+    pdf.fallback_fonts = ['TimesNewRoman', 'THFahKwangBold', 'MiedingerBook', 'Helvetica', 'Sazanami-Hanazono-Mincho']
     pdf.font(default_font)
     default_font
   end

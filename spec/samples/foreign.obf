@@ -23,6 +23,10 @@
       "border_color": "#444",
       "background_color": "#c0c0c0",
       "image_id": 2
+    },
+    {
+      "label": "水很酷哟",
+      "id": 3
     }
   ],
   "images": [
@@ -78,7 +82,7 @@
         null
       ],
       [
-        null,
+        3,
         null,
         null,
         null,

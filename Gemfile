@@ -5,7 +5,7 @@ gem 'typhoeus'
 gem 'mime-types'
 gem 'rubyzip'
 gem 'prawn'
-gem 'ttfunk', '1.5.1'
+gem 'ttfunk' #, '1.5.1'
 gem 'CFPropertyList'
 gem 'nokogiri'
 
