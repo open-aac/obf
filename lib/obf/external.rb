@@ -116,6 +116,8 @@ module OBF::External
       OBF::Utils.update_current_progress(idx.to_f / button_count.to_f)
     end
 
+    # board_id 1_527892 has some svg's still, not pre-rasterized versions
+    # 1_531854 convert-im6.q16: non-conforming drawing primitive definition `Helvetica''' @ error/draw.c/DrawImage/3265.
     if to_include[:images]
       hydra = OBF::Utils.hydra
       grabs = []
@@ -147,6 +149,8 @@ module OBF::External
           'width' => original_image['width'],
           'height' => original_image['height'],
           'license' => OBF::Utils.parse_license(original_image['license']),
+          'protected' => original_image['protected'],
+          'protected_source' => original_image['protected_source'],
           'url' => original_image['url'],
           'data' => original_image['data'],
           'data_url' => original_image['data_url'],
@@ -200,6 +204,8 @@ module OBF::External
           'width' => original_image['width'],
           'height' => original_image['height'],
           'license' => OBF::Utils.parse_license(original_image['license']),
+          'protected' => original_image['protected'],
+          'protected_source' => original_image['protected_source'],
           'url' => original_image['url'],
           'data_url' => original_image['data_url'],
           'content_type' => original_image['content_type']
@@ -215,6 +221,8 @@ module OBF::External
           'id' => original_sound['id'],
           'duration' => original_sound['duration'],
           'license' => OBF::Utils.parse_license(original_sound['license']),
+          'protected' => original_sound['protected'],
+          'protected_source' => original_sound['protected_source'],
           'url' => original_sound['url'],
           'data' => original_sound['data'],
           'data_url' => original_sound['data_url'],
@@ -248,6 +256,8 @@ module OBF::External
           'id' => original_sound['id'],
           'duration' => original_sound['duration'],
           'license' => OBF::Utils.parse_license(original_sound['license']),
+          'protected' => original_sound['protected'],
+          'protected_source' => original_sound['protected_source'],
           'url' => original_sound['url'],
           'data_url' => original_sound['data_url'],
           'content_type' => original_sound['content_type']
