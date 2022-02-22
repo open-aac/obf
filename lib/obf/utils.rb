@@ -153,7 +153,7 @@ module OBF::Utils
         image['content_type'] ||= attrs['content_type']
       end
     end
-    return nil unless image
+    return nil unless image && image['data']
     str = "data:" + image['content_type']
     str += ";base64," + Base64.strict_encode64(image['data'])
     str
