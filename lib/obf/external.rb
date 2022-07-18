@@ -170,7 +170,7 @@ module OBF::External
             image['height'] ||= path_hash['images'][image['id']]['height']
           else
             image_fetch = OBF::Utils.image_raw(image['data'] || image['url'])
-            if image_fetch
+            if image_fetch && image_fetch['data']
               if !image['content_type'] || !image['width'] || !image['height']
                 attrs = OBF::Utils.image_attrs(image_fetch['data'])
                 image['content_type'] ||= image_fetch['content_type'] || attrs['content_type']

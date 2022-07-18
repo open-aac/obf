@@ -377,7 +377,7 @@ module OBF::Utils
   
   def self.image_attrs(path, extension='')
     res = {}
-    if path.match(/^data:/)
+    if path && path.match(/^data:/)
       res['content_type'] = path.split(/;/)[0].split(/:/)[1]
       raw = Base64.strict_decode64(path.split(/\,/, 2)[1])
       file = Tempfile.new(['file', extension])
