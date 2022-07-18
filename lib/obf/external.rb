@@ -116,6 +116,8 @@ module OBF::External
       OBF::Utils.update_current_progress(idx.to_f / button_count.to_f)
     end
 
+    # board_id 1_527892 has some svg's still, not pre-rasterized versions
+    # 1_531854 convert-im6.q16: non-conforming drawing primitive definition `Helvetica''' @ error/draw.c/DrawImage/3265.
     if to_include[:images]
       hydra = OBF::Utils.hydra
       grabs = []
