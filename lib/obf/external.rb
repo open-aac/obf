@@ -41,80 +41,84 @@ module OBF::External
     buttons = hash['buttons'] #board.settings['buttons']
     button_count = buttons.length
     
-    buttons.each_with_index do |original_button, idx|
-      button = {
-        'id' => original_button['id'],
-        'label' => original_button['label'],
-        'vocalization' => original_button['vocalization'],
-        'action' => original_button['action'],
-        'actions' => original_button['actions'],
-        'left' => original_button['left'],
-        'top' => original_button['top'],
-        'width' => original_button['width'],
-        'height' => original_button['height'],
-        'border_color' => OBF::Utils.fix_color(original_button['border_color'] || "#aaa", 'rgb'),
-        'background_color' => OBF::Utils.fix_color(original_button['background_color'] || "#fff", 'rgb')
-      }
-      if original_button['load_board']
-        button['load_board'] = {
-          'id' => original_button['load_board']['id'],
-          'url' => original_button['load_board']['url'],
-          'data_url' => original_button['load_board']['data_url']
+    OBF::Utils.as_progress_percent(0.0, 0.3) do
+      buttons.each_with_index do |original_button, idx|
+        button = {
+          'id' => original_button['id'],
+          'label' => original_button['label'],
+          'vocalization' => original_button['vocalization'],
+          'action' => original_button['action'],
+          'actions' => original_button['actions'],
+          'left' => original_button['left'],
+          'top' => original_button['top'],
+          'width' => original_button['width'],
+          'height' => original_button['height'],
+          'border_color' => OBF::Utils.fix_color(original_button['border_color'] || "#aaa", 'rgb'),
+          'background_color' => OBF::Utils.fix_color(original_button['background_color'] || "#fff", 'rgb')
         }
-        if path_hash && path_hash['included_boards'] && path_hash['included_boards'][original_button['load_board']['id']]
-          button['load_board']['path'] = "board_#{original_button['load_board']['id']}.obf"
+        if original_button['load_board']
+          button['load_board'] = {
+            'id' => original_button['load_board']['id'],
+            'url' => original_button['load_board']['url'],
+            'data_url' => original_button['load_board']['data_url']
+          }
+          if path_hash && path_hash['included_boards'] && path_hash['included_boards'][original_button['load_board']['id']]
+            button['load_board']['path'] = "board_#{original_button['load_board']['id']}.obf"
+          end
         end
-      end
-      if original_button['translations']
-        original_button['translations'].each do |loc, hash|
-          next unless hash.is_a?(Hash)
-          button['translations'] ||= {}
-          button['translations'][loc] ||= {}
-          button['translations'][loc]['label'] = hash['label'].to_s if hash['label']
-          button['translations'][loc]['vocalization'] = hash['vocalization'].to_s if hash['vocalization']
-          (hash['inflections'] || {}).each do |key, val|
-            if key.match(/^ext_/)
-              button['translations'][loc]['inflections'] ||= {}
-              button['translations'][loc]['inflections'][key] = val
-            else
-              button['translations'][loc]['inflections'] ||= {}
-              button['translations'][loc]['inflections'][key] = val.to_s
+        if original_button['translations']
+          original_button['translations'].each do |loc, hash|
+            next unless hash.is_a?(Hash)
+            button['translations'] ||= {}
+            button['translations'][loc] ||= {}
+            button['translations'][loc]['label'] = hash['label'].to_s if hash['label']
+            button['translations'][loc]['vocalization'] = hash['vocalization'].to_s if hash['vocalization']
+            (hash['inflections'] || {}).each do |key, val|
+              if key.match(/^ext_/)
+                button['translations'][loc]['inflections'] ||= {}
+                button['translations'][loc]['inflections'][key] = val
+              else
+                button['translations'][loc]['inflections'] ||= {}
+                button['translations'][loc]['inflections'][key] = val.to_s
+              end
+            end
+            hash.keys.each do |key|
+              button['translations'][loc][key] = hash[key] if key.to_s.match(/^ext_/)
             end
           end
-          hash.keys.each do |key|
-            button['translations'][loc][key] = hash[key] if key.to_s.match(/^ext_/)
+        end
+        if original_button['hidden']
+          button['hidden'] = original_button['hidden']
+        end
+        if original_button['url']
+          button['url'] = original_button['url']
+        end
+        original_button.each do|key, val|
+          if key.match(/^ext_/)
+            button[key] = val
           end
         end
-      end
-      if original_button['hidden']
-        button['hidden'] = original_button['hidden']
-      end
-      if original_button['url']
-        button['url'] = original_button['url']
-      end
-      original_button.each do|key, val|
-        if key.match(/^ext_/)
-          button[key] = val
-        end
-      end
 
-      if original_button['image_id'] && hash['images']
-        image = hash['images'].detect{|i| i['id'] == original_button['image_id']}
-        if image
-          images << image
-          button['image_id'] = image['id']
+        if original_button['image_id'] && hash['images']
+          image = hash['images'].detect{|i| i['id'] == original_button['image_id']}
+          if image
+            images << image
+            button['image_id'] = image['id']
+          end
         end
-      end
-      if original_button['sound_id']
-        sound = hash['sounds'].detect{|s| s['id'] == original_button['sound_id']}
-        if sound
-          sounds << sound
-          button['sound_id'] = sound['id']
+        if original_button['sound_id']
+          sound = hash['sounds'].detect{|s| s['id'] == original_button['sound_id']}
+          if sound
+            sounds << sound
+            button['sound_id'] = sound['id']
+          end
         end
+        res['buttons'] << trim_empties(button)
+        OBF::Utils.update_current_progress(idx.to_f / button_count.to_f, "generated button #{button['id']} for #{res['id']}")
       end
-      res['buttons'] << trim_empties(button)
-      OBF::Utils.update_current_progress(idx.to_f / button_count.to_f)
     end
+
+    OBF::Utils.update_current_progress(0.35, "images for board #{res['id']}")
 
     # board_id 1_527892 has some svg's still, not pre-rasterized versions
     # 1_531854 convert-im6.q16: non-conforming drawing primitive definition `Helvetica''' @ error/draw.c/DrawImage/3265.
@@ -215,6 +219,7 @@ module OBF::External
 
     end
     
+    OBF::Utils.update_current_progress(0.75, "sounds for board #{res['id']}")
     if to_include[:sounds]
       sounds.each do |original_sound|
         sound = {
@@ -266,6 +271,8 @@ module OBF::External
       end
     end
 
+    OBF::Utils.update_current_progress(0.85, "grid for board #{res['id']}")
+
     res['grid'] = OBF::Utils.parse_grid(hash['grid']) # TODO: more robust parsing here
     if path_hash && path_hash['zip']
       zip_path = "board_#{res['id']}.obf"
@@ -278,6 +285,7 @@ module OBF::External
       File.open(dest_path, 'w') {|f| f.write(JSON.pretty_generate(res)) }
     end
     OBF::Utils.log("  done compressing board #{res['name'] || res['id']}")
+    OBF::Utils.update_current_progress(1.0, "done for board #{res['id']}")
     return dest_path
   end
   
@@ -333,6 +341,8 @@ module OBF::External
     content['images'] ||= boards.map{|b| b['images'] }.flatten.uniq
     content['sounds'] ||= boards.map{|b| b['sounds'] }.flatten.uniq
     root_board = boards[0]
+    incr = 1.0 / boards.length.to_f
+    tally = 0.0
     OBF::Utils.build_zip(dest_path) do |zipper|
       paths['zip'] = zipper
       paths['included_boards'] = {}
@@ -340,12 +350,15 @@ module OBF::External
         paths['included_boards'][b['id']] = b
       end
       boards.each do |b|
-        b = paths['included_boards'][b['id']]
-        if b
-          b['images'] = content['images'] || []
-          b['sounds'] = content['sounds'] || []
-          to_obf(b, nil, paths, opts[:to_include])
+        OBF::Utils.as_progress_percent(tally, tally + incr) do
+          b = paths['included_boards'][b['id']]
+          if b
+            b['images'] = content['images'] || []
+            b['sounds'] = content['sounds'] || []
+            to_obf(b, nil, paths, opts[:to_include])
+          end
         end
+        tally += incr
       end
       manifest = {
         'format' => OBF::OBF::FORMAT,
@@ -424,7 +437,7 @@ module OBF::External
     end
     tmp_path = OBF::Utils.temp_path("stash")
     if opts['packet']
-      OBF::Utils.as_progress_percent(0, 0.3) do
+      OBF::Utils.as_progress_percent(0.1, 0.3) do
         opts[:to_include] = {images: true}
         OBF::External.to_obz(board, tmp_path, opts)  
       end

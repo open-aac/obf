@@ -63,84 +63,84 @@ module OBF::PDF
   end
   
   def self.build_pdf(obj, dest_path, zipper, opts={})
-    OBF::Utils.as_progress_percent(0, 1.0) do
-      # parse obf, draw as pdf
-      doc_opts = {
-        :page_layout => :landscape, 
-        :page_size => [8.5*72, 11*72],
-        :info => {
-          :Title => obj['name']
-        }
+    # parse obf, draw as pdf
+    doc_opts = {
+      :page_layout => :landscape, 
+      :page_size => [8.5*72, 11*72],
+      :info => {
+        :Title => obj['name']
       }
-      pdf = Prawn::Document.new(doc_opts)
-      default_font = load_fonts(pdf, opts)
-    
-      multi_render_paths = []
-      if obj['boards']
-        multi_render = obj['boards'].length > 20 && `which gs`.length > 0
-        obj['backlinks'] = {}
-        if obj['pages']
-          obj['boards'].each do |board|
-            board['buttons'].each do |button|
-              if button['load_board'] && button['load_board']['id']
-                obj['backlinks'][button['load_board']['id']] ||= []
-                obj['backlinks'][button['load_board']['id']] << obj['pages'][board['id']] if obj['pages'][board['id']]
-              end
+    }
+    pdf = Prawn::Document.new(doc_opts)
+    default_font = load_fonts(pdf, opts)
+  
+    multi_render_paths = []
+    if obj['boards']
+      multi_render = obj['boards'].length > 20 && `which gs`.length > 0
+      obj['backlinks'] = {}
+      if obj['pages']
+        obj['boards'].each do |board|
+          board['buttons'].each do |button|
+            if button['load_board'] && button['load_board']['id']
+              obj['backlinks'][button['load_board']['id']] ||= []
+              obj['backlinks'][button['load_board']['id']] << obj['pages'][board['id']] if obj['pages'][board['id']]
             end
           end
-          OBF::Utils.log "backlinks #{obj['backlinks'].to_json}"
         end
-        obj['boards'].each_with_index do |board, idx|
-          started = Time.now.to_i
-          OBF::Utils.log "starting pdf of board #{idx} #{board['name'] || board['id']} at #{started}"
-          pre = idx.to_f / obj['boards'].length.to_f
-          post = (idx + 1).to_f / obj['boards'].length.to_f
-          OBF::Utils.as_progress_percent(pre, post) do
-            # if more than 20 pages, build each page individually 
-            # and combine them afterwards
-            if multi_render
-              path = OBF::Utils.temp_path("stash-#{idx}.pdf")
-              pdf = Prawn::Document.new(doc_opts)
-              load_fonts(pdf, opts)
-            else
-              pdf.start_new_page unless idx == 0
-            end
-            build_page(pdf, board, {
-              'zipper' => zipper, 
-              'pages' => obj['pages'],
-              'backlinks' => obj['backlinks'][board['id']] || [], 
-              'headerless' => !!opts['headerless'], 
-              'font' => default_font,
-              'links' => false,
-              'text_on_top' => !!opts['text_on_top'], 
-              'transparent_background' => !!opts['transparent_background'],
-              'symbol_background' => opts['symbol_background'],
-              'text_case' => opts['text_case']
-            })
-            if multi_render
-              pdf.render_file(path)
-              multi_render_paths << path
-            end
+        OBF::Utils.log "backlinks #{obj['backlinks'].to_json}"
+      end
+      incr = 1.0 / obj['boards'].length.to_f
+      tally = 0
+      obj['boards'].each_with_index do |board, idx|
+        started = Time.now.to_i
+        OBF::Utils.log "starting pdf of board #{idx} #{board['name'] || board['id']} at #{started}"
+        pre = idx.to_f / obj['boards'].length.to_f
+        post = (idx + 1).to_f / obj['boards'].length.to_f
+        OBF::Utils.as_progress_percent(tally, tally + incr) do
+          # if more than 20 pages, build each page individually 
+          # and combine them afterwards
+          if multi_render
+            path = OBF::Utils.temp_path("stash-#{idx}.pdf")
+            pdf = Prawn::Document.new(doc_opts)
+            load_fonts(pdf, opts)
+          else
+            pdf.start_new_page unless idx == 0
           end
-          OBF::Utils.log "  finished pdf of board #{idx}/#{obj['boards'].length} #{Time.now.to_i - started}s"
+          build_page(pdf, board, {
+            'zipper' => zipper, 
+            'pages' => obj['pages'],
+            'backlinks' => obj['backlinks'][board['id']] || [], 
+            'headerless' => !!opts['headerless'], 
+            'font' => default_font,
+            'links' => false,
+            'text_on_top' => !!opts['text_on_top'], 
+            'transparent_background' => !!opts['transparent_background'],
+            'symbol_background' => opts['symbol_background'],
+            'text_case' => opts['text_case']
+          })
+          if multi_render
+            pdf.render_file(path)
+            multi_render_paths << path
+          end
         end
-      else
-        build_page(pdf, obj, {
-          'headerless' => !!opts['headerless'], 
-          'font' => default_font,
-          'text_on_top' => !!opts['text_on_top'], 
-          'transparent_background' => !!opts['transparent_background'],
-          'symbol_background' => opts['symbol_background'],
-          'text_case' => opts['text_case']
-        })
+        tally += incr
+        OBF::Utils.log "  finished pdf of board #{idx}/#{obj['boards'].length} #{Time.now.to_i - started}s"
       end
-      if multi_render_paths.length > 0
-        # `cp #{multi_render_paths[0]} #{dest_path}`
-        `gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile=#{dest_path} #{multi_render_paths.join(' ')}`
-      else
-        pdf.render_file(dest_path)
-      end
-    
+    else
+      build_page(pdf, obj, {
+        'headerless' => !!opts['headerless'], 
+        'font' => default_font,
+        'text_on_top' => !!opts['text_on_top'], 
+        'transparent_background' => !!opts['transparent_background'],
+        'symbol_background' => opts['symbol_background'],
+        'text_case' => opts['text_case']
+      })
+    end
+    if multi_render_paths.length > 0
+      # `cp #{multi_render_paths[0]} #{dest_path}`
+      `gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile=#{dest_path} #{multi_render_paths.join(' ')}`
+    else
+      pdf.render_file(dest_path)
     end
   end
   
@@ -433,7 +433,7 @@ module OBF::PDF
               end
             end
             index = col + (row * obj['grid']['columns'])
-            OBF::Utils.update_current_progress(index.to_f / (obj['grid']['rows'] * obj['grid']['columns']).to_f)
+            OBF::Utils.update_current_progress(index.to_f / (obj['grid']['rows'] * obj['grid']['columns']).to_f, "updated button #{button_id}")
           end
         end
       end
@@ -448,6 +448,7 @@ module OBF::PDF
       board['path'] = root
       unvisited_boards = [board]
       visited_boards = []
+      OBF::Utils.update_current_progress(0.2, "prepping for pdf")
       while unvisited_boards.length > 0
         board = unvisited_boards.shift
         visited_boards << board
@@ -474,11 +475,13 @@ module OBF::PDF
         pages[board['id']] = (idx + 1).to_s
       end
       
-      build_pdf({
-        'name' => 'Communication Board Set',
-        'boards' => visited_boards,
-        'pages' => pages
-      }, dest_path, zipper, opts)
+      OBF::Utils.as_progress_percent(0.2, 1.0) do
+          build_pdf({
+          'name' => 'Communication Board Set',
+          'boards' => visited_boards,
+          'pages' => pages
+        }, dest_path, zipper, opts)
+      end
     end
     # parse obz, draw as pdf
 
