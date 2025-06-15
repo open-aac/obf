@@ -1,4 +1,5 @@
 require 'cfpropertylist'
+require 'uri'
 module OBF::Utils
   def self.get_url(url, hydra_wait=false)
     return nil unless url
@@ -9,7 +10,7 @@ module OBF::Utils
       content_type = url.split(/;/)[0].split(/:/)[1]
       data = Base64.strict_decode64(url.split(/\,/, 2)[1])
     else
-      uri = url.match(/\%/) ? url : URI.escape(url)
+      uri = url.match(/\%/) ? url : URI::DEFAULT_PARSER.escape(url)
       uri = self.sanitize_url(uri)
       if hydra_wait
         req = Typhoeus::Request.new(uri, followlocation: true)
